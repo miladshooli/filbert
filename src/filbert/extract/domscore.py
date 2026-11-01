@@ -18,7 +18,15 @@ from filbert.extract.blocks import (
     iter_candidate_blocks,
     join_text,
 )
-from filbert.extract.domtext import Node, Tree, class_id, link_density, node_text, xpath_of
+from filbert.extract.domtext import (
+    Node,
+    Tree,
+    class_id,
+    inner_text_len,
+    link_density,
+    node_text,
+    xpath_of,
+)
 from filbert.extract.rules import ReadabilityRules
 
 SOURCE = "dom"
@@ -41,6 +49,7 @@ DEFAULT_WEIGHTS: dict[str, float] = {
     "list_or_table": 0.6,
     "quote_or_code": 0.8,  # blockquote/pre داخل محتوا معمولاً خودِ محتواست
     "neighbor": 0.7,  # میانگین امتیاز مثبت دو همسایه در ترتیب سند (هموارسازی)
+    "repeat_group": 1.3,  # داخل گروهی از خواهر/برادرهای هم‌class با متن زیاد (پست انجمن، نظر، آیتم)
 }
 
 
@@ -59,6 +68,7 @@ class Features:
     has_number: float
     list_or_table: float
     quote_or_code: float
+    repeat_group: float = 0.0
     neighbor: float = 0.0
 
     def as_dict(self) -> dict[str, float]:
@@ -95,6 +105,53 @@ def _ancestor_class_score(
     return pos, neg
 
 
+def _repeat_item(node: Node, levels: int = 5, min_group_chars: int = 300) -> Node | None:
+    """آیتمِ گروه تکرارشونده‌ای که این بلوک داخل آن است (جدی تا ۵ سطح با ≥۳ خواهر/برادر هم‌class،
+    متن مجموع ≥ min_group_chars و چگالی لینک گروه < ۰.۵)؛ وگرنه None."""
+    cur: Node | None = node
+    for _ in range(levels):
+        if cur is None or cur.tag in ("body", "html"):
+            return None
+        cid = class_id(cur)
+        parent = cur.parent
+        if cid and parent is not None:
+            same = [c for c in _element_children(parent) if class_id(c) == cid]
+            if len(same) >= 3:
+                total = sum(inner_text_len(c) for c in same)
+                if total >= min_group_chars and link_density(parent) < 0.5:
+                    return cur
+                return None
+        cur = parent
+    return None
+
+
+def repeat_main_flags(cands: list[tuple[Node, str]], texts: list[str]) -> list[float]:
+    """۱ برای بلوکی که در یک آیتم تکرارشونده، بزرگ‌ترین بلوک متنی آیتم است (یا ≥۵۰٪ آن)؛
+    خطوط متای کوتاه (تاریخ، تعداد پست) ۰ می‌گیرند."""
+    items: list[int | None] = []
+    best: dict[int, int] = {}
+    for (node, _), text in zip(cands, texts, strict=True):
+        item = _repeat_item(node)
+        mid = item.mem_id if item is not None else None
+        items.append(mid)
+        if mid is not None:
+            best[mid] = max(best.get(mid, 0), len(text))
+    return [
+        1.0 if (mid is not None and best[mid] > 0 and len(t) >= 0.5 * best[mid]) else 0.0
+        for mid, t in zip(items, texts, strict=True)
+    ]
+
+
+def _element_children(node: Node) -> list[Node]:
+    out: list[Node] = []
+    c = node.child
+    while c is not None:
+        if c.is_element_node:
+            out.append(c)
+        c = c.next
+    return out
+
+
 def _depth(node: Node) -> int:
     d = 0
     cur = node.parent
@@ -122,6 +179,7 @@ def compute_features(
     lengths = [len(t) for t in texts]
     largest = max(range(len(cands)), key=lambda i: lengths[i])
     span = max(1, len(cands) - 1)
+    repeat_flags = repeat_main_flags(cands, texts)
     feats: list[Features] = []
     for i, ((node, tag), text) in enumerate(zip(cands, texts, strict=True)):
         words = text.split()
@@ -143,6 +201,7 @@ def compute_features(
                 has_number=1.0 if _DIGIT_RE.search(text) else 0.0,
                 list_or_table=1.0 if tag in ("ul", "ol", "table") else 0.0,
                 quote_or_code=1.0 if tag in ("blockquote", "pre") else 0.0,
+                repeat_group=repeat_flags[i],
             )
         )
     return feats

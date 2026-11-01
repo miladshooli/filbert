@@ -39,7 +39,7 @@ uv run filbert bench --dataset fa-200
 
 ## وضعیت فازها
 - [x] فاز ۱ — هسته (مدل داده، fetch+کش، preclean، Readability، سه نویسنده، CLI) — 2026-11-01
-- [ ] فاز ۲ — ensemble (CETD، DOM-scorer، رأی‌گیری، fa-200، bench)
+- [x] فاز ۲ — ensemble (CETD، DOM-scorer، رأی‌گیری، fa-200، bench) — 2026-11-01؛ پیاده‌سازی کامل، معیار خروج (F1 ≥ Trafilatura+3 روی fa-200) هنوز نه: +0.9 با برچسب auto. کار باز: بازبینی برچسب‌ها (bench.label) و بهبود صفحات محصول.
 - [ ] فاز ۳ — متادیتای کامل + فارسی
 - [ ] فاز ۴ — رندر مشروط + مقیاس
 - [ ] فاز ۵ — هوش اختیاری (lightgbm، CRF، --llm)

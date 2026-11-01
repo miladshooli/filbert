@@ -11,7 +11,7 @@ from __future__ import annotations
 import re
 from dataclasses import dataclass
 
-from filbert.extract.domtext import Node, Tree, class_id, has_ancestor
+from filbert.extract.domtext import Node, Tree, class_id, has_ancestor, inner_text_len
 from filbert.extract.rules import PrecleanRules
 
 _HIDDEN_STYLE_RE = re.compile(r"display\s*:\s*none|visibility\s*:\s*hidden", re.IGNORECASE)
@@ -37,11 +37,26 @@ def is_hidden(node: Node) -> bool:
     return bool(style and _HIDDEN_STYLE_RE.search(style))
 
 
+def _unhide(node: Node) -> None:
+    for attr in ("hidden", "aria-hidden"):
+        if attr in node.attributes:
+            del node.attrs[attr]
+    style = node.attributes.get("style")
+    if style and _HIDDEN_STYLE_RE.search(style):
+        del node.attrs["style"]
+
+
 def matches_negative(node: Node, rules: PrecleanRules) -> bool:
     cid = class_id(node)
     if not cid:
         return False
     return bool(rules.negative.search(cid)) and not rules.maybe_candidate.search(cid)
+
+
+# عنصر مخفی با ≥۳۰٪ متن body (پس از حذف script) و ≥۵۰۰ کاراکتر، محتواست
+# (streaming SSR ری‌اکت: <div hidden id="S:0">) و به‌جای حذف، آشکار می‌شود.
+_HIDDEN_KEEP_RATIO = 0.3
+_HIDDEN_KEEP_MIN_CHARS = 500
 
 
 def preclean(tree: Tree, rules: PrecleanRules) -> PrecleanStats:
@@ -50,11 +65,11 @@ def preclean(tree: Tree, rules: PrecleanRules) -> PrecleanStats:
     body = tree.body
     if body is None:
         return stats
-
     for tag in rules.remove_tags:
         for n in body.css(tag):
             n.decompose()
             stats.removed_tags += 1
+    body_len = max(1, inner_text_len(body))  # پس از حذف script/style
 
     # یک پیمایش: کامنت، مخفی، الگوها. عناصر در فهرست جمع می‌شوند تا پیمایش هنگام حذف خراب نشود.
     to_remove: list[tuple[Node, str]] = []
@@ -65,8 +80,13 @@ def preclean(tree: Tree, rules: PrecleanRules) -> PrecleanStats:
         if not n.is_element_node or n.tag in rules.protected_tags:
             continue
         if is_hidden(n):
-            to_remove.append((n, "hidden"))
-            continue
+            if (
+                tl := inner_text_len(n)
+            ) >= _HIDDEN_KEEP_RATIO * body_len and tl >= _HIDDEN_KEEP_MIN_CHARS:
+                _unhide(n)  # ظرف streaming/hydration؛ محتوای واقعی صفحه است
+            else:
+                to_remove.append((n, "hidden"))
+                continue
         if matches_negative(n, rules):
             if n.tag in _HEADER_EXCEPTION and has_ancestor(n, _MAIN_TAGS):
                 continue

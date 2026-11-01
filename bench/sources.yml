@@ -17,7 +17,7 @@ defaults:
     - "[class*=advert]"
     - "[class*=ads]"
     - "[class*=toc]"
-    - "[class*=print:hidden]"
+    - "[class*=\"print:hidden\"]"
 
 sources:
   # ---------- news (60) ----------
@@ -59,12 +59,12 @@ sources:
   # ---------- blog (40) ----------
   - site: nobitex-mag
     type: blog
-    count: 10
+    count: 12
     discover: {listing: ["https://nobitex.ir/mag/", "https://nobitex.ir/mag/category/education/", "https://nobitex.ir/mag/category/news/"], pattern: 'nobitex\.ir/mag/[a-z0-9]+(-[a-z0-9]+){2,}/$', exclude: '/mag/(category|tag|author|page)/'}
     gold: {include: ["article h1", "article .entry-content"], exclude: [".share-buttons", ".post-extra-info", ".related-posts", ".about-author", "script", "style", ".stream-item"], min_chars: 400}
   - site: virgool
     type: blog
-    count: 8
+    count: 10
     discover: {listing: ["https://virgool.io/", "https://virgool.io/tags/%D8%AA%DA%A9%D9%86%D9%88%D9%84%D9%88%DA%98%DB%8C"], pattern: 'virgool\.io/@[^/]+/[^/]+-[a-z0-9]{10,}$', exclude: '/@[^/]+/?$'}
     gold: {include: ["h1", ".v-block"], exclude: [".no-print", "script", "style"], min_chars: 400}
   - site: digikala-mag
@@ -79,46 +79,31 @@ sources:
     gold: {include: ["article.single-post-item .single-post-heading h1", "article.single-post-item .post-content"], exclude: [".post-tags", ".post-share", "script", "style"], min_chars: 400}
   - site: faradars-blog
     type: blog
-    count: 4
+    count: 2
     discover: {listing: ["https://blog.faradars.org/", "https://blog.faradars.org/category/programming/"], pattern: 'blog\.faradars\.org/[a-z0-9]+(-[a-z0-9]+){1,}/$', exclude: '/(tag|author|category|page|topic)/|terms|app/|careers'}
-    gold: {include: ["article h1", "article .the-content"], exclude: [".related-courses", ".post-sharing", ".post-author", ".comments-area", "script", "style", "[class*=print:hidden]"], min_chars: 400}
+    gold: {include: ["article h1", "article .the-content"], exclude: [".related-courses", ".post-sharing", ".post-author", ".comments-area", "script", "style", "[class*=\"print:hidden\"]"], min_chars: 400}
   - site: ramzarz
     type: blog
     count: 4
-    discover: {sitemap: "https://ramzarz.news/sitemap.xml", pattern: 'ramzarz\.news/[a-z0-9-]+/[a-z0-9-]+/$', exclude: '(category|tag|author|exchanges)'}
+    discover: {sitemap: "https://ramzarz.news/sitemap.xml", pattern: 'ramzarz\.news/[a-z0-9-]+/[a-z0-9-]+/$', exclude: '(category|tag|author|exchanges|coins)'}
     gold: {include: ["article h1", "article .entry-content"], exclude: *exclude_common, min_chars: 400}
   # ---------- product (40) ----------
   - site: technolife
     type: product
-    count: 12
+    count: 28
     discover: {sitemap: "https://www.technolife.com/sitemap.xml", pattern: 'technolife\.com/product-\d+'}
-    gold: {include: ["main article"], exclude: ["nav", "button", "script", "style"], min_chars: 150}
+    gold: {include: ["main article h1", "main article.relative"], exclude: ["nav", "button", "script", "style", "[class*=share]"], min_chars: 150}
   - site: mobit
     type: product
-    count: 10
+    count: 12
     discover: {listing: ["https://www.mobit.ir/", "https://www.mobit.ir/category/mobile"], pattern: 'mobit\.ir/product/'}
-    gold: {include: ["main"], exclude: [".hidden", "nav", "button", "script", "style"], min_chars: 150}
-  - site: zoomit-product
-    type: product
-    count: 8
-    discover: {sitemap: "https://www.zoomit.ir/sitemap.xml", pattern: 'zoomit\.ir/product/[a-z0-9-]+/$'}
-    gold: {include: ["h1", "main"], exclude: ["nav", "button", "script", "style", "[class*=share]"], min_chars: 150}
-  - site: digikala
-    type: product
-    count: 5
-    discover: {sitemap: "https://www.digikala.com/sitemap.xml", pattern: 'digikala\.com/product/dkp-\d+'}
-    gold: {include: ["h1", "main"], exclude: ["nav", "button", "script", "style"], min_chars: 150}
-  - site: banimode
-    type: product
-    count: 5
-    discover: {listing: ["https://www.banimode.com/"], pattern: 'banimode\.com/product/'}
-    gold: {include: ["h1", "main"], exclude: ["nav", "button", "script", "style"], min_chars: 150}
+    gold: {include: ["main h1", "main .grid"], exclude: ["[class*=overflow-x-hidden]", "nav", "button", "script", "style", "[class*=share]"], min_chars: 150}
   # ---------- landing / services (30) ----------
   - site: nobitex
     type: landing
     count: 12
     discover: {listing: ["https://nobitex.ir/"], pattern: '^https://nobitex\.ir/[a-z0-9-]+/?$', exclude: '/(mag|login|signup|app|blog|panel)'}
-    gold: {include: ["main", ".margin-container"], exclude: ["nav", "header", "footer", "button", "script", "style"], min_chars: 200}
+    gold: {include: ["main", ".margin-container", "body > article"], exclude: ["nav", "header", "footer", "button", "script", "style"], min_chars: 200}
   - site: wallex
     type: landing
     count: 9
@@ -132,18 +117,18 @@ sources:
   # ---------- forum / Q&A (30) ----------
   - site: ninisite
     type: forum
-    count: 14
+    count: 24
     discover: {listing: ["https://www.ninisite.com/discussion/", "https://www.ninisite.com/discussion/forum/107/x"], pattern: 'ninisite\.com/discussion/topic/\d+'}
     gold: {include: ["h1", "article.topic-post .postbody"], exclude: [".forum-native-ad", "script", "style", ".signature"], min_chars: 300}
   - site: webhostingtalk
     type: forum
-    count: 6
-    discover: {listing: ["https://www.webhostingtalk.ir/"], pattern: 'webhostingtalk\.ir/(showthread|threads?)', exclude: 'page'}
+    count: 2
+    discover: {listing: ["https://www.webhostingtalk.ir/"], pattern: 'webhostingtalk\.ir/showthread\.php\?.*t=\d+', exclude: 'goto=|p=\d'}
     gold: {include: ["h1", ".postbody .content", "[id^=post_message]", ".postcontent", ".message-content", ".bbWrapper"], exclude: [".signature", ".postfoot", "script", "style"], min_chars: 300}
   - site: majidonline
     type: forum
     count: 6
-    discover: {listing: ["https://forum.majidonline.com/"], pattern: 'forum\.majidonline\.com/(showthread|threads?)', exclude: 'page'}
+    discover: {listing: ["https://forum.majidonline.com/"], pattern: 'forum\.majidonline\.com/threads/[^/]+\.\d+/', exclude: 'page-'}
     gold: {include: ["h1", ".postbody .content", "[id^=post_message]", ".postcontent", ".message-content", ".bbWrapper"], exclude: [".signature", ".postfoot", "script", "style"], min_chars: 300}
   - site: wordpress-fa
     type: forum

@@ -36,6 +36,7 @@ class EnsembleResult:
     confidence: float | None = None
     low_confidence: bool = False
     recall_mode: bool = False
+    recall_anchor: bool = False  # رأی‌گیری خیلی کم داد؛ خروجی CETD ∪ اکثریت (صفحات فهرستی/مشخصات)
     extractors: dict[str, float] = field(default_factory=dict)  # سهم هر استخراج‌گر در خروجی نهایی
     per_extractor_blocks: dict[str, int] = field(default_factory=dict)
 
@@ -91,14 +92,25 @@ def vote(
     return sorted(table.values(), key=lambda v: v.order)
 
 
-def drop_containers(chosen: list[Voted], body_id: int) -> list[Voted]:
-    """اگر بلوک درشت (مثلاً `ul`) و بلوک‌های ریز داخلش هر دو انتخاب شده‌اند، ریزها می‌مانند."""
-    chosen_ids = {v.block.node.mem_id for v in chosen}
-    drop: set[int] = set()
+def drop_containers(chosen: list[Voted], body_id: int, coverage: float = 0.6) -> list[Voted]:
+    """اگر بلوک درشت (مثلاً `ul`) و بلوک‌های ریز داخلش هر دو انتخاب شده‌اند:
+    ریزها ≥ ۶۰٪ متن ظرف را پوشش دهند → ظرف حذف؛ وگرنه ریزها حذف و ظرف می‌ماند (مثلاً فهرست مشخصات)."""
+    by_id = {v.block.node.mem_id: v for v in chosen}
+    covered: dict[int, int] = {}
+    inner_of: dict[int, list[int]] = {}
     for v in chosen:
         for a in _ancestor_ids(v.block.node, body_id):
-            if a in chosen_ids:
-                drop.add(a)
+            if a in by_id:
+                covered[a] = covered.get(a, 0) + len(v.block.text)
+                inner_of.setdefault(a, []).append(v.block.node.mem_id)
+                break  # فقط نزدیک‌ترین ظرفِ انتخاب‌شده
+    drop: set[int] = set()
+    for a, chars in covered.items():
+        container_len = max(1, len(by_id[a].block.text))
+        if chars / container_len >= coverage:
+            drop.add(a)
+        else:
+            drop.update(inner_of[a])
     return [v for v in chosen if v.block.node.mem_id not in drop]
 
 
@@ -119,12 +131,16 @@ def select(voted: list[Voted], n_extractors: int = len(EXTRACTORS)) -> list[Vote
     return chosen
 
 
+ANCHOR_RATIO = 0.5  # اگر متن اکثریت < ۵۰٪ متن CETD بود، CETD ∪ اکثریت
+
+
 def merge(
     tree: Tree,
     outputs: dict[str, list[RawBlock]],
     *,
     min_text_chars: int = 200,
     recall: bool = False,
+    anchor_ratio: float = ANCHOR_RATIO,
 ) -> EnsembleResult:
     body = tree.body
     res = EnsembleResult(per_extractor_blocks={k: len(v) for k, v in outputs.items()})
@@ -133,6 +149,16 @@ def merge(
     voted = vote(outputs, doc_order(body), body.mem_id)
     chosen = drop_containers(select(voted), body.mem_id)
     text_len = len(join_text([v.block for v in chosen]))
+    anchor = cetd.SOURCE
+    if anchor in outputs and not recall:
+        anchor_len = len(join_text(outputs[anchor]))
+        if anchor_len and text_len < anchor_ratio * anchor_len:
+            # صفحات فهرستی (مشخصات محصول، پست‌های کوتاه انجمن): Readability/DOM کم می‌آورند؛ CETD لنگر می‌شود
+            chosen = drop_containers(
+                [v for v in voted if anchor in v.sources or v.votes >= 2], body.mem_id
+            )
+            text_len = len(join_text([v.block for v in chosen]))
+            res.recall_anchor = True
     if recall or text_len < min_text_chars:
         chosen = drop_containers(voted, body.mem_id)  # اتحاد
         res.recall_mode = True

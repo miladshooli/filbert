@@ -57,6 +57,17 @@ def test_hidden_removed(attrs: str) -> None:
     assert "مخفی" not in out and "آشکار" in out
 
 
+def test_large_hidden_streaming_container_kept() -> None:
+    body = (
+        '<body><nav>منو</nav><div hidden id="S:0"><h1>تیتر</h1><p>'
+        + "متن اصلی مقاله. " * 40
+        + "</p></div><div hidden>کوچک</div></body>"
+    )
+    out = clean(body)
+    assert "متن اصلی مقاله" in out and "کوچک" not in out
+    assert "hidden" not in out.split("<h1>")[0]  # صفت hidden برداشته شده
+
+
 def test_aria_hidden_false_kept() -> None:
     assert "متن" in clean('<body><div aria-hidden="false">متن</div></body>')
 

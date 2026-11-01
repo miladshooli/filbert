@@ -1,0 +1,130 @@
+باگ بانتی نوبیتکس
+
+حفظ امنیت و حفاظت از اطلاعات و دارایی کاربران مهم‌ترین مسئولیت نوبیتکس است؛ به همین منظور از شما دعوت می‌کنیم با ارسال گزارش در شناسایی آسیب‌پذیری‌های سایت نوبیتکس در انجام بهتر این مسئولیت ما را یاری کنید.
+ارسال گزارش
+
+nobitex.ir , api.nobitex.ir
+*.nobitex.ir
+پنل‌های بیزینسی
+
+آسیب‌پذیری با درجه تاثیر بحرانی
+۷۰ - ۳۵۰
+۳۵ - ۱۶۰
+۲۰ - ۱۰۰
+
+آسیب‌پذیری با درجه تاثیر بالا
+۱۲ - ۷۰
+۵ - ۳۵
+۳ - ۲۰
+
+آسیب‌پذیری با درجه تاثیر متوسط
+۳ - ۱۲
+۱ - ۵
+۱ - ۳
+
+آسیب‌پذیری با درجه تاثیر پایین
+تا ۳
+تا ۱
+تا ۱
+
+جوایز
+زمان و تخصص شما برای شناسایی آسیب‌پذیری‌های نوبیتکس ارزشمند است؛ نوبیتکس تلاش می‌کند با ارائه جوایز جذاب و منصفانه متخصصین امنیت را به مشارکت در باگ بانتی دعوت کند. در همین راستا بر اساس شدت و اهمیت آسیب‌پذیری گزارش شده، جوایزی تعیین شده است؛ جوایز پس از داوری گزارش ارسال شده و تایید آسیب‌پذیری توسط تیم امنیت نوبیتکس، از طریق ایمیل رسمی نوبیتکس به شما اعلام می‌شود.
+
+حیاتی500,000,000+ تومان
+
+دسترسی غیرمجاز به کیف پول هات/کلد نوبیتکس
+
+بحرانیتا 350,000,000 تومان
+
+دسترسی به حساب کاربران به صورت عمده
+Injection + Privilege Escalation to System Account
+arbitrary code/command execution on vital servers
+فریب دادن سیستم تشخیص خودکار واریز کریپتویی که منجر به شارژ حساب کاربر شود
+
+بالاتا 70,000,000 تومان
+
+Vertical/Horizontal Privilege Escalation
+Insecure Direct Object Reference
+Authorization/Authentication Bypass
+Local File Inclusion
+Source Code Disclosure
+Server Side Request Forgery that leads to higher impact like accessing files
+Stored XSS (Non-Privileged User to Privileged user)
+
+متوسطتا 12,000,000 تومان
+
+Account Takeover by User Interaction
+Reflected XSS
+Mass User Enumeration
+OAuth misusable misconfiguration
+
+پایینتا 3,000,000 تومان
+
+Open Redirect(GET-Based)
+SSRF (External)
+Information Disclosure through Errors
+SMS Bomber
+CRLF Injection
+
+قوانین
+
+در حال حاضر گزارش‌های مربوط به nobitex.ir/academy , nobitex.ir/mag شامل بانتی نمی‌باشد.
+
+آسیب پذیری که کشف کرده اید را به سرعت و به صورت خصوصی از طریق ایمیل به نوبیتکس گزارش کنید.
+
+با توجه به حساسیت حساب‌های کاربری نوبیتکس، آسیب‌پذیری را فقط روی حساب‌های کاربری خودتان تست کنید. بدون اجازه از دسترسی، تغییر یا افشای اطلاعات شخصی کاربران بپرهیزید.
+
+انتشار گزارش آسیب پذیری در فضای عمومی رسانه‌ای یا شبکه‌های اجتماعی نیاز به تایید نوبیتکس دارد.
+
+گزارش‌ شما در صورتی تایید می‌شود که امکان اکسپلویت‌شدن (Exploit) داشته باشد.
+
+در صورت کشف آسیب‌پذیری نشست اطلاعات، از انتشار اطلاعات حساس بپرهیزید و بعد از تایید شدن گزارشتان و دریافت جایزه، تمام اطلاعات را حذف کنید.
+
+زیردامنه‌هایی که برای تست یا برای دیباگینگ و یا سایر موارد مشابه استفاده می‌شوند، در باگ بانتی نوبیتکس پذیرفته نمی‌شوند.
+
+به یک آسیب‌پذیری مشابه در دو یا چند دامین متفاوت تنها یک جایزه تعلق می‌گیرد.
+
+آسیب‌پذیری‌های خارج از محدوده
+
+Self XSS
+Internal open redirect
+Brute Forcing accounts
+DOS/DDOS attacks
+Vulnerabilities related to rate limit are considered outside the scope of bug bounty until they lead to a vulnerability with a higher degree of importance.
+Social engineering attacks
+Physical attacks or exploits
+Vulnerabilities on third-party websites or applications
+Vulnerabilities already reported by others
+Vulnerabilities requiring physical access to devices
+Spam or phishing vulnerabilities
+Clickjacking without evidence of a vulnerability
+Issues related to outdated or unsupported browsers/clients
+Email spoofing
+lack of security headers
+Issues related to insecure SSL/TLS cipher suites or protocols
+SSRF (DNS Query Only)
+Open Redirect (POST-Based)
+Captcha brute force
+Exposed Admin Portal To Internet
+Public Admin Login Page
+Deprecated Open Source libraries
+Publicly available leaked credentials (e.g., database dumps) found online
+Theoretical vulnerabilities without proof of concept
+Output from automated tools/scanners or AI-generated reports
+Issues without security impact
+Missing best practices (e.g., lack of input validation) without impact
+Disclosure of non-sensitive public information
+
+ویژگی‌ گزارش‌ها
+
+گزارش‌ را با جزییات کامل بنویسید تا تیم داوری بتواند به سرعت آسیب‌پذیری را اجرا و بررسی کنند.
+
+ارسال ویدئو همراه با گزارش متنی به سرعت و دقت بررسی تیم داوری کمک می‌کند.
+
+در گزارش متنی آسیب پذیری را مرحله به مرحله شرح دهید و در صورتی که از ابزار یا پیلود خاصی استفاده کرده‌اید؛ حتما به آن اشاره کنید.
+
+برای داوری بهتر هر آسیب پذیری را در یک گزارش مجزا ارسال کنید.
+
+نسخه مرورگر و سیستم عاملی که از آن استفاده کرده را اعلام کنید.
+
+گزارش‌ها را به ایمیل security@nobitex.net ارسال کنید.

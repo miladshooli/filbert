@@ -118,6 +118,27 @@ def test_containment_aware_voting() -> None:
     assert res.confidence == 1.0
 
 
+def test_cetd_anchor_when_majority_is_thin() -> None:
+    from filbert.extract.blocks import collect_blocks
+
+    items = "".join(f"<li><p>مشخصه شماره {i}: مقدار {i}</p></li>" for i in range(10))
+    tree = parse(
+        f"<html><body><h1>کالا</h1><ul>{items}</ul><p>{'توضیح کوتاه. ' * 20}</p></body></html>"
+    )
+    all_blocks: list[RawBlock] = []
+    collect_blocks(tree.body, None, all_blocks, source="cetd")
+    thin = [b for b in all_blocks if b.type == "h1"]  # readability/dom فقط تیتر
+    res = ensemble.merge(
+        tree, {"readability": list(thin), "cetd": all_blocks, "dom": list(thin)}, min_text_chars=10
+    )
+    assert res.recall_anchor and "مشخصه شماره 9" in res.text
+    # وقتی اکثریت کافی است، لنگر فعال نمی‌شود
+    res2 = ensemble.merge(
+        tree, {"readability": all_blocks, "cetd": all_blocks, "dom": list(thin)}, min_text_chars=10
+    )
+    assert not res2.recall_anchor
+
+
 def test_recall_fallback_on_short_output() -> None:
     tree = parse("<html><body><p>الف</p><div><p>ب</p></div></body></html>")
     res = ensemble.extract(tree, RULES, min_text_chars=200)
@@ -137,3 +158,19 @@ def test_forced_recall() -> None:
 def test_empty() -> None:
     res = ensemble.extract(parse(""), RULES)
     assert res.blocks == [] and res.confidence is None
+
+
+def test_drop_containers_keeps_list_when_coverage_low() -> None:
+    from filbert.extract.blocks import collect_blocks
+
+    items = "".join(f"<li><p>مشخصه {i}: مقدار {i}</p></li>" for i in range(8))
+    tree = parse(f"<html><body><ul>{items}</ul></body></html>")
+    coarse: list[RawBlock] = []
+    collect_blocks(tree.body, None, coarse, source="cetd")
+    fine: list[RawBlock] = []
+    collect_blocks(tree.css("li")[0], None, fine, source="readability")  # فقط یک آیتم
+    res = ensemble.merge(
+        tree, {"readability": fine, "cetd": coarse, "dom": list(coarse)}, min_text_chars=10
+    )
+    assert [b.type for b in res.blocks] == ["ul"]  # ظرف ماند؛ آیتم تنها حذف شد
+    assert "مشخصه 7" in res.text

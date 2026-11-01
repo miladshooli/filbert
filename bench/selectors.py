@@ -5,23 +5,36 @@
 
 from __future__ import annotations
 
+import logging
+
+from selectolax.lexbor import SelectolaxError
+
 from filbert.extract.blocks import doc_order
 from filbert.extract.domtext import node_text, parse
 
+log = logging.getLogger("bench.selectors")
 _ALWAYS_EXCLUDE = (
     "script, style, noscript, template, iframe, svg, canvas, form, button, input, select, textarea"
 )
 
 
+def _css(tree, sel: str) -> list:
+    try:
+        return tree.css(sel)
+    except SelectolaxError:
+        log.warning("bad selector %r", sel)
+        return []
+
+
 def gold_from_selectors(html: str, include: list[str], exclude: list[str] | None = None) -> str:
     tree = parse(html)
     for sel in [_ALWAYS_EXCLUDE, *(exclude or [])]:
-        for n in tree.css(sel):
+        for n in _css(tree, sel):
             n.decompose()
     order = doc_order(tree.body) if tree.body is not None else {}
     matched: dict[int, object] = {}
     for sel in include:
-        for n in tree.css(sel):
+        for n in _css(tree, sel):
             matched.setdefault(n.mem_id, n)
     seen: set[int] = set()
     chunks: list[str] = []
