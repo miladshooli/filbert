@@ -1,0 +1,35 @@
+[
+  {
+    "url": "https://fa.wikipedia.org/wiki/تهران",
+    "final_url": "https://fa.wikipedia.org/wiki/%D8%AA%D9%87%D8%B1%D8%A7%D9%86",
+    "status": 200,
+    "etag": null,
+    "last_modified": "Thu, 29 Oct 2026 21:33:51 GMT",
+    "content_type": "text/html; charset=UTF-8",
+    "encoding": "utf-8",
+    "fetched_at": "2026-11-01T12:47:00+00:00",
+    "raw_key": "599f55838e623c7f92df03ec56ebfc124f561f620337b2e0552bcaa73205ee0a"
+  },
+  {
+    "url": "https://www.zoomit.ir/",
+    "final_url": "https://www.zoomit.ir/",
+    "status": 200,
+    "etag": null,
+    "last_modified": null,
+    "content_type": "text/html; charset=utf-8",
+    "encoding": "utf-8",
+    "fetched_at": "2026-11-01T12:47:01+00:00",
+    "raw_key": "bbefdd86e024db168cfaae3b4b2c7ab883cebfadef67d41926db4d95777b9944"
+  },
+  {
+    "url": "https://nobitex.ir/mag/",
+    "final_url": "https://nobitex.ir/mag/",
+    "status": 200,
+    "etag": null,
+    "last_modified": "Sun, 01 Nov 2026 12:36:03 GMT",
+    "content_type": "text/html; charset=UTF-8",
+    "encoding": "utf-8",
+    "fetched_at": "2026-11-01T12:47:53+00:00",
+    "raw_key": "da46c5ca08c09c4e9ba686193b4f9aad6a69e2cb2187f7a2db657767ae9c3177"
+  }
+]
