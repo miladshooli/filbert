@@ -1,0 +1,62 @@
+# الگوهای boilerplate برای filbert — قابل ویرایش بدون تغییر کد.
+# همه regexها بدون حساسیت به حروف روی `class` و `id` (به هم چسبیده با فاصله) اعمال می‌شوند.
+# نسخه ریشه پروژه (data/boilerplate_fa.yml) با FILBERT_BOILERPLATE_PATH قابل جایگزینی است.
+
+preclean:
+  # تگ‌هایی که همیشه کامل حذف می‌شوند (گام ۰)
+  remove_tags:
+    - script
+    - style
+    - noscript
+    - template
+    - iframe
+    - svg
+    - canvas
+    - form
+    - input
+    - select
+    - button
+    - textarea
+    - nav
+    - aside
+    - footer
+    - link
+    - object
+    - embed
+  # تگ‌هایی که هرگز با الگوی class/id حذف نمی‌شوند
+  protected_tags: [html, body, article, main]
+  # الگوی class/id → حذف عنصر (به‌جز header/h1 داخل article|main و به‌جز وقتی maybe_candidate هم match کند)
+  negative_patterns:
+    - comment|share|social|related|sidebar|breadcrumb|cookie|popup|modal|newsletter|promo|advert|banner|menu|pagination
+    - nazar|didgah|eshterak|tabligh|matalebe-mortabet|khabarname|agahi|link-?haye-?mofid|peyvand
+  # اگر class/id این را هم match کند، با الگوی بالا حذف نمی‌شود (محافظ محتوای اصلی)
+  maybe_candidate: article|body|column|content|^main$|main-?(content|body|text|article)|shadow|matn|mohtava|maghale|post-?body|entry
+
+readability:
+  positive: article|body|content|entry|hentry|h-entry|main|page|post|text|blog|story|matn|mohtava|maghale|khabar|neveshte
+  negative: hidden|^hid$|banner|combx|comment|com-|contact|foot|footer|footnote|masthead|media|meta|outbrain|promo|related|scroll|share|shoutbox|sidebar|skyscraper|sponsor|shopping|tags|tool|widget|nazar|didgah|tabligh|eshterak
+  class_weight: 25
+  # امتیاز پایه هر تگ
+  tag_scores:
+    div: 5
+    pre: 3
+    td: 3
+    blockquote: 3
+    address: -3
+    ol: -3
+    ul: -3
+    dl: -3
+    dd: -3
+    dt: -3
+    li: -3
+    form: -3
+    h1: -5
+    h2: -5
+    h3: -5
+    h4: -5
+    h5: -5
+    h6: -5
+    th: -5
+  min_paragraph_chars: 25
+  sibling_threshold_ratio: 0.2
+  sibling_threshold_min: 10
