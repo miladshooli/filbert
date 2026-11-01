@@ -1,3 +1,4 @@
+import asyncio
 import time
 
 import pytest
@@ -161,4 +162,24 @@ async def test_per_host_limiter_spacing(httpserver: HTTPServer, settings: Settin
     async with Fetcher(s) as f:
         await f.fetch_many([httpserver.url_for(f"/l?i={i}") for i in range(3)])
     stamps.sort()
-    assert all(b - a >= 0.08 for a, b in zip(stamps, stamps[1:], strict=False))
+    assert stamps[-1] - stamps[0] >= 0.15  # دو فاصله ۱۰۰ms (با تلرانس jitter سرور)
+
+
+async def test_host_limiter_direct() -> None:
+    from filbert.fetch.client import HostLimiter
+
+    lim = HostLimiter(concurrency=4, delay_s=0.05)
+    starts: list[float] = []
+
+    async def one() -> None:
+        async with await lim("h"):
+            starts.append(time.monotonic())
+
+    await asyncio.gather(*(one() for _ in range(4)))
+    starts.sort()
+    assert all(b - a >= 0.045 for a, b in zip(starts, starts[1:], strict=False))
+    # host دیگر مستقل است
+    t0 = time.monotonic()
+    async with await lim("other"):
+        pass
+    assert time.monotonic() - t0 < 0.04

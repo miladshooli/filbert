@@ -103,7 +103,7 @@ def xpath_of(node: Node) -> str:
             if sib.tag == tag:
                 idx += 1
             sib = sib.prev
-        parts.append(f"{tag}[{idx}]")
+        parts.append("body" if tag == "body" else f"{tag}[{idx}]")
         cur = cur.parent
     parts.append("html")
     return "/" + "/".join(reversed(parts))
