@@ -134,7 +134,8 @@ def check_regression(res: dict, baseline: dict, *, speed: bool = True) -> list[s
         ):
             problems.append(f"{res['dataset']}/{name}: F1 {old['f1']} → {cur['f1']}")
         if (
-            old.get("p50_ms")
+            speed
+            and old.get("p50_ms")
             and cur["p50_ms"]
             and cur["p50_ms"] > old["p50_ms"] * (1 + SPEED_TOLERANCE)
         ):
