@@ -1,0 +1,8 @@
+# یک URL در هر خط؛ خطوط با # نادیده گرفته می‌شوند
+https://nobitex.ir/
+https://nobitex.ir/blog/
+https://www.zoomit.ir/
+https://www.isna.ir/
+https://www.digikala.com/
+https://virgool.io/
+https://fa.wikipedia.org/wiki/%D8%AA%D9%87%D8%B1%D8%A7%D9%86
