@@ -16,7 +16,7 @@ from pathlib import Path
 
 from filbert import __version__
 from filbert.config import Settings
-from filbert.extract import readability
+from filbert.extract import ensemble
 from filbert.extract.cleanhtml import build_article
 from filbert.extract.domtext import parse
 from filbert.extract.preclean import preclean
@@ -61,7 +61,9 @@ def extract_html(
     tree = parse(html)
     seo = extract_head(tree, final, response_headers)  # پیش از preclean: همان چیزی که گوگل می‌بیند
     preclean(tree, rules.preclean)
-    res = readability.extract(tree, rules.readability, base_url=final)
+    res = ensemble.extract(
+        tree, rules, base_url=final, min_text_chars=settings.min_text_chars, recall=settings.recall
+    )
 
     text_raw = res.text
     text = normalize_text(
@@ -84,13 +86,13 @@ def extract_html(
             html=build_article(
                 (b.html for b in res.blocks), lang=lang, direction=direction_for(lang)
             ),
-            blocks=[b.to_block() for b in res.blocks],
+            blocks=res.blocks,
             word_count=words,
             char_count=chars,
             reading_time_min=reading_time_min(words),
-            confidence=None,  # فاز ۲: میانگین توافق سه استخراج‌گر
-            low_confidence=chars < settings.min_text_chars,
-            extractors={"readability": res.top_score},
+            confidence=res.confidence,
+            low_confidence=res.low_confidence or chars < settings.min_text_chars,
+            extractors=res.extractors,
         ),
         content_hash=content_hash(text),
         raw_html_ref=raw_html_ref,

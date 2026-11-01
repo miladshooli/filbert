@@ -91,6 +91,33 @@ def test_voting_rules() -> None:
     assert [v.block.xpath for v in chosen] == [xp[0], xp[1], xp[2], xp[4], xp[5]]
 
 
+def test_containment_aware_voting() -> None:
+    from filbert.extract.blocks import collect_blocks
+
+    tree = parse(
+        "<html><body><ul>"
+        + "".join(
+            f"<li><h2>تیتر {i}</h2><p>{'متن خبر شماره ' + str(i) + ' است. ' * 8}</p></li>"
+            for i in range(3)
+        )
+        + "</ul></body></html>"
+    )
+    coarse: list[RawBlock] = []
+    collect_blocks(tree.body, None, coarse, source="cetd")  # → یک بلوک ul
+    assert [b.type for b in coarse] == ["ul"]
+    fine: list[RawBlock] = []
+    for li in tree.css("li"):
+        collect_blocks(li, None, fine, source="readability")  # → h2/p ریز
+    assert len(fine) == 6
+    res = ensemble.merge(
+        tree, {"readability": fine, "cetd": coarse, "dom": list(coarse)}, min_text_chars=50
+    )
+    assert not res.recall_mode
+    assert [b.type for b in res.blocks] == ["h2", "p"] * 3  # ریزها ماندند، ul حذف شد
+    assert all(b.votes == 3 for b in res.blocks)
+    assert res.confidence == 1.0
+
+
 def test_recall_fallback_on_short_output() -> None:
     tree = parse("<html><body><p>الف</p><div><p>ب</p></div></body></html>")
     res = ensemble.extract(tree, RULES, min_text_chars=200)

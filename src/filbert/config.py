@@ -42,7 +42,8 @@ class Settings(BaseSettings):
     concurrency: int = 32  # کارگران سراسری
 
     # استخراج
-    min_text_chars: int = 200  # زیر این مقدار → low_confidence
+    min_text_chars: int = 200  # زیر این مقدار → fallback به recall و low_confidence
+    recall: bool = False  # اتحاد سه استخراج‌گر به‌جای رأی‌گیری
     default_lang: str = "fa"
     digits: str = Field(default="fa", pattern="^(fa|en)$")
     strip_diacritics: bool = False

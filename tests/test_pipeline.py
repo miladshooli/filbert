@@ -27,7 +27,9 @@ def test_extract_html_news_record() -> None:
     assert rec.content.word_count > 100 and not rec.content.low_confidence
     assert rec.content.text_raw != "" and "‌" in rec.content.text
     assert len(rec.content_hash) == 16
-    assert rec.content.extractors["readability"] > 0
+    assert set(rec.content.extractors) == {"readability", "cetd", "dom"}
+    assert rec.content.confidence is not None and rec.content.confidence > 0.6
+    assert all(b.votes >= 1 for b in rec.content.blocks)
     # متادیتا نرمال نمی‌شود، متن می‌شود
     assert rec.seo.keywords == ["بیت‌کوین", "ارز دیجیتال", "بازار"]
 

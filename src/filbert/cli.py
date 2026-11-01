@@ -56,7 +56,9 @@ def summary_dict(rec: PageRecord) -> dict[str, object]:
         "blocks": len(rec.content.blocks),
         "word_count": rec.content.word_count,
         "char_count": rec.content.char_count,
+        "confidence": rec.content.confidence,
         "low_confidence": rec.content.low_confidence,
+        "extractors": rec.content.extractors,
         "content_hash": rec.content_hash,
         "text_preview": (rec.content.text or "")[:160],
     }
@@ -94,10 +96,13 @@ def extract(
         bool, typer.Option("--json", help="خلاصه JSON هر صفحه را در stdout چاپ کن")
     ] = False,
     digits: Annotated[str, typer.Option("--digits", help="fa یا en")] = "fa",
+    recall: Annotated[
+        bool, typer.Option("--recall", help="اتحاد سه استخراج‌گر (بیشینه recall)")
+    ] = False,
 ) -> None:
     """استخراج محتوای اصلی و متادیتای SEO از URL یا فایل."""
     fmts = _parse_formats(formats)
-    overrides: dict[str, object] = {"digits": digits}
+    overrides: dict[str, object] = {"digits": digits, "recall": recall}
     if cache_dir is not None:
         overrides["cache_dir"] = cache_dir
     settings = Settings(**overrides)

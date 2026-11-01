@@ -13,7 +13,7 @@ from dataclasses import dataclass, field
 
 from filbert.extract import cetd, domscore, readability
 from filbert.extract.blocks import RawBlock, doc_order, join_text
-from filbert.extract.domtext import Tree
+from filbert.extract.domtext import Node, Tree
 from filbert.extract.rules import Rules
 from filbert.models import Block
 
@@ -52,8 +52,26 @@ def run_extractors(tree: Tree, rules: Rules, base_url: str | None) -> dict[str, 
     }
 
 
-def vote(outputs: dict[str, list[RawBlock]], order: dict[int, int]) -> list[Voted]:
-    """بلوک‌ها را با کلید ادغام می‌کند و به ترتیب سند برمی‌گرداند."""
+def _ancestor_ids(node: Node, stop_id: int) -> list[int]:
+    ids: list[int] = []
+    cur = node.parent
+    while cur is not None and cur.mem_id != stop_id:
+        ids.append(cur.mem_id)
+        cur = cur.parent
+    return ids
+
+
+def vote(
+    outputs: dict[str, list[RawBlock]], order: dict[int, int], body_id: int | None = None
+) -> list[Voted]:
+    """بلوک‌ها را با کلید ادغام می‌کند و به ترتیب سند برمی‌گرداند.
+
+    رأی با آگاهی از دربرگیری: اگر استخراج‌گری جدِ یک بلوک را (مثلاً کل `ul`) داده باشد، آن بلوک ریز
+    هم رأی او را می‌گیرد؛ وگرنه اختلاف granularity رأی‌ها را پخش می‌کند.
+    """
+    emitted: dict[str, set[int]] = {
+        src: {b.node.mem_id for b in blocks} for src, blocks in outputs.items()
+    }
     table: dict[str, Voted] = {}
     for source, blocks in outputs.items():
         for b in blocks:
@@ -62,10 +80,26 @@ def vote(outputs: dict[str, list[RawBlock]], order: dict[int, int]) -> list[Vote
             if v is None:
                 v = Voted(block=b, votes=0, order=order.get(b.node.mem_id, 10**9))
                 table[key] = v
-            if source not in v.sources:
-                v.sources.add(source)
-                v.votes += 1
+            v.sources.add(source)
+    stop = body_id if body_id is not None else -1
+    for v in table.values():
+        chain = _ancestor_ids(v.block.node, stop)
+        for src, ids in emitted.items():
+            if src not in v.sources and any(a in ids for a in chain):
+                v.sources.add(src)
+        v.votes = len(v.sources)
     return sorted(table.values(), key=lambda v: v.order)
+
+
+def drop_containers(chosen: list[Voted], body_id: int) -> list[Voted]:
+    """اگر بلوک درشت (مثلاً `ul`) و بلوک‌های ریز داخلش هر دو انتخاب شده‌اند، ریزها می‌مانند."""
+    chosen_ids = {v.block.node.mem_id for v in chosen}
+    drop: set[int] = set()
+    for v in chosen:
+        for a in _ancestor_ids(v.block.node, body_id):
+            if a in chosen_ids:
+                drop.add(a)
+    return [v for v in chosen if v.block.node.mem_id not in drop]
 
 
 def select(voted: list[Voted], n_extractors: int = len(EXTRACTORS)) -> list[Voted]:
@@ -96,11 +130,11 @@ def merge(
     res = EnsembleResult(per_extractor_blocks={k: len(v) for k, v in outputs.items()})
     if body is None:
         return res
-    voted = vote(outputs, doc_order(body))
-    chosen = select(voted)
+    voted = vote(outputs, doc_order(body), body.mem_id)
+    chosen = drop_containers(select(voted), body.mem_id)
     text_len = len(join_text([v.block for v in chosen]))
     if recall or text_len < min_text_chars:
-        chosen = voted  # اتحاد
+        chosen = drop_containers(voted, body.mem_id)  # اتحاد
         res.recall_mode = True
         res.low_confidence = True
     n = len(outputs) or 1
