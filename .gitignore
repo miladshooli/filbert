@@ -3,8 +3,8 @@ __pycache__/
 *.pyc
 .pytest_cache/
 .ruff_cache/
-out/
-cache/
+/out/
+/cache/
 stability_out/
 .env
 .hypothesis/
