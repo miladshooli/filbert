@@ -1,0 +1,64 @@
+[project]
+name = "filbert"
+version = "0.1.0"
+description = "Fast, accurate web main-content + SEO metadata extractor, tuned for Persian/RTL."
+readme = "README.md"
+requires-python = ">=3.12"
+license = { text = "MIT" }
+dependencies = [
+  "pydantic>=2.7",
+  "pydantic-settings>=2.3",
+  "httpx[http2]>=0.27",
+  "selectolax>=0.3.21",
+  "orjson>=3.10",
+  "markdownify>=0.13",
+  "typer>=0.12",
+  "rich>=13.7",
+  "zstandard>=0.22",
+  "pyyaml>=6.0",
+  "charset-normalizer>=3.3",
+  "tldextract>=5.1",
+]
+
+[project.optional-dependencies]
+render = ["playwright>=1.45"]
+ml = ["lightgbm>=4.3"]
+bench = ["trafilatura>=1.9"]
+
+[project.scripts]
+filbert = "filbert.cli:app"
+
+[dependency-groups]
+dev = [
+  "pytest>=8.2",
+  "pytest-asyncio>=0.23",
+  "hypothesis>=6.100",
+  "pytest-httpserver>=1.0",
+  "ruff>=0.5",
+]
+
+[build-system]
+requires = ["hatchling>=1.24"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/filbert"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+filterwarnings = ["error::DeprecationWarning:filbert.*"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+src = ["src", "tests"]
+extend-exclude = ["tools"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM", "W"]
+ignore = ["E501"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["filbert"]
