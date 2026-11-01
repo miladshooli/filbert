@@ -25,6 +25,14 @@ def test_normalize(raw: str, expected: str) -> None:
     assert normalize_url(raw) == expected
 
 
+def test_persian_path_encoding_consistent() -> None:
+    a = normalize_url("https://fa.wikipedia.org/wiki/تهران")
+    b = normalize_url("https://fa.wikipedia.org/wiki/%D8%AA%D9%87%D8%B1%D8%A7%D9%86")
+    c = normalize_url("https://fa.wikipedia.org/wiki/%d8%aa%d9%87%d8%b1%d8%a7%d9%86")
+    assert a == b == c == "https://fa.wikipedia.org/wiki/%D8%AA%D9%87%D8%B1%D8%A7%D9%86"
+    assert normalize_url("https://a.ir/p%2Fq/x y") == "https://a.ir/p%2Fq/x%20y"
+
+
 def test_idempotent() -> None:
     u = normalize_url("https://Nobitex.ir/blog/?utm_x=1&z=2&a=1#frag")
     assert normalize_url(u) == u

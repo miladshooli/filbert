@@ -10,7 +10,7 @@ from __future__ import annotations
 import contextlib
 import re
 from functools import lru_cache
-from urllib.parse import parse_qsl, urlencode, urljoin, urlsplit, urlunsplit
+from urllib.parse import parse_qsl, quote, urlencode, urljoin, urlsplit, urlunsplit
 
 import tldextract
 
@@ -44,6 +44,19 @@ _extract = tldextract.TLDExtract(
 )
 
 
+_PCT_RE = re.compile(r"%[0-9a-fA-F]{2}")
+_PATH_UNSAFE = frozenset(' "<>\\^`{|}')
+
+
+def _encode_path(path: str) -> str:
+    """percent-encoding یکدست مسیر: غیر-ASCII و کاراکترهای ناامن → %XX؛ escapeهای موجود بزرگ‌نویسی.
+
+    `تهران` و `%D8%AA%D9%87%D8%B1%D8%A7%D9%86` به یک شکل می‌رسند؛ `%2F` دست نمی‌خورد.
+    """
+    path = _PCT_RE.sub(lambda m: m.group(0).upper(), path)
+    return "".join(quote(c, safe="") if (ord(c) > 127 or c in _PATH_UNSAFE) else c for c in path)
+
+
 def is_tracking_param(name: str) -> bool:
     n = name.lower()
     return n in TRACKING_PARAMS or n.startswith(TRACKING_PREFIXES)
@@ -67,7 +80,7 @@ def normalize_url(url: str, base: str | None = None) -> str:
         cred = parts.username + (f":{parts.password}" if parts.password else "")
         netloc = f"{cred}@{netloc}"
 
-    path = parts.path or "/"
+    path = _encode_path(parts.path or "/")
     path = _INDEX_RE.sub("/", path)
     if not path.startswith("/"):
         path = "/" + path
