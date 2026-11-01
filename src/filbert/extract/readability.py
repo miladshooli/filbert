@@ -12,7 +12,14 @@ from __future__ import annotations
 import logging
 from dataclasses import dataclass, field
 
-from filbert.extract.cleanhtml import sanitize_node
+from filbert.extract.blocks import (
+    OUTPUT_BLOCK_TAGS,
+    RawBlock,
+    collect_blocks,
+    emit_block,
+    ensure_h1,
+    join_text,
+)
 from filbert.extract.domtext import (
     Node,
     Tree,
@@ -20,18 +27,14 @@ from filbert.extract.domtext import (
     has_block_child,
     inner_text_len,
     link_density,
-    node_text,
     xpath_of,
 )
 from filbert.extract.rules import ReadabilityRules
-from filbert.models import Block
 
 log = logging.getLogger(__name__)
 
+SOURCE = "readability"
 PARAGRAPH_TAGS: frozenset[str] = frozenset({"p", "td", "pre", "blockquote"})
-OUTPUT_BLOCK_TAGS: frozenset[str] = frozenset(
-    {"h1", "h2", "h3", "h4", "h5", "h6", "p", "ul", "ol", "table", "blockquote", "pre", "figure"}
-)
 CONTAINER_TAGS: frozenset[str] = frozenset(
     {
         "div",
@@ -66,7 +69,7 @@ class Candidate:
 
 @dataclass(slots=True)
 class ReadabilityResult:
-    blocks: list[Block] = field(default_factory=list)
+    blocks: list[RawBlock] = field(default_factory=list)
     top_xpath: str | None = None
     top_score: float = 0.0
     text_len: int = 0
@@ -74,7 +77,7 @@ class ReadabilityResult:
 
     @property
     def text(self) -> str:
-        return "\n\n".join(b.text for b in self.blocks if b.text)
+        return join_text(self.blocks)
 
 
 def class_weight(node: Node, rules: ReadabilityRules) -> float:
@@ -231,60 +234,6 @@ def _select_content_nodes(
     return chosen or [top.node]
 
 
-def _collect_blocks(node: Node, base_url: str | None, out: list[Block], min_chars: int) -> None:
-    """بلوک‌های خروجی را از زیردرخت یک نود جمع می‌کند (ترتیب سند)."""
-    for child in node.iter():
-        if not child.is_element_node:
-            continue
-        tag = child.tag
-        if tag in OUTPUT_BLOCK_TAGS:
-            _emit_block(child, tag, base_url, out, min_chars)
-        elif tag not in ("img", "br", "hr", "a"):
-            if has_block_child(child):
-                _collect_blocks(child, base_url, out, min_chars)
-            else:
-                _emit_block(child, "p", base_url, out, min_chars)
-        elif tag == "img":
-            _emit_block(child, "figure", base_url, out, 0)
-
-
-def _emit_block(
-    node: Node, tag: str, base_url: str | None, out: list[Block], min_chars: int
-) -> None:
-    text = node_text(node)
-    has_img = node.css_first("img") is not None or node.tag == "img"
-    if tag in ("ul", "ol", "table"):
-        if link_density(node) > 0.5:
-            return  # فهرست ناوبری / جدول لینک
-    elif tag == "figure":
-        if not has_img and not text:
-            return
-    elif tag not in ("pre", "h1", "h2", "h3", "h4", "h5", "h6"):
-        if not text and not has_img:
-            return
-        if len(text) < max(min_chars, 100) and link_density(node) > 0.5:
-            return  # تکه لینکی کوتاه (ناوبری، اشتراک‌گذاری)
-    elif not text:
-        return
-    html = sanitize_node(node, base_url, as_tag=tag)
-    out.append(Block(type=tag, text=text, html=html, xpath=xpath_of(node), votes=1))  # type: ignore[arg-type]
-
-
-def _ensure_h1(body: Node, blocks: list[Block], base_url: str | None) -> None:
-    """تیتر صفحه (اولین h1 باقی‌مانده پس از preclean) اگر در خروجی نیست، به ابتدا اضافه می‌شود."""
-    if any(b.type == "h1" for b in blocks):
-        return
-    h1 = body.css_first("h1")
-    if h1 is None:
-        return
-    text = node_text(h1)
-    if not text:
-        return
-    blocks.insert(
-        0, Block(type="h1", text=text, html=sanitize_node(h1, base_url), xpath=xpath_of(h1))
-    )
-
-
 def extract(tree: Tree, rules: ReadabilityRules, base_url: str | None = None) -> ReadabilityResult:
     """درخت (پس از preclean) → بلوک‌های محتوای اصلی."""
     body = tree.body
@@ -294,7 +243,7 @@ def extract(tree: Tree, rules: ReadabilityRules, base_url: str | None = None) ->
     res = ReadabilityResult(candidates=len(cands))
     if not cands:
         # صفحه بدون پاراگراف قابل امتیاز → همه body
-        _collect_blocks(body, base_url, res.blocks, 0)
+        collect_blocks(body, base_url, res.blocks, source=SOURCE)
         res.top_xpath = xpath_of(body)
         res.text_len = len(res.text)
         return res
@@ -306,10 +255,10 @@ def extract(tree: Tree, rules: ReadabilityRules, base_url: str | None = None) ->
         nodes = _select_content_nodes(top, cands, rules)
     for n in nodes:
         if n.tag in OUTPUT_BLOCK_TAGS:
-            _emit_block(n, n.tag, base_url, res.blocks, 0)
+            emit_block(n, n.tag, base_url, res.blocks, source=SOURCE)
         else:
-            _collect_blocks(n, base_url, res.blocks, 0)
-    _ensure_h1(body, res.blocks, base_url)
+            collect_blocks(n, base_url, res.blocks, source=SOURCE)
+    ensure_h1(body, res.blocks, base_url, source=SOURCE)
     res.top_xpath = xpath_of(top.node)
     res.top_score = round(top.score, 2)
     res.text_len = len(res.text)

@@ -84,7 +84,7 @@ def extract_html(
             html=build_article(
                 (b.html for b in res.blocks), lang=lang, direction=direction_for(lang)
             ),
-            blocks=res.blocks,
+            blocks=[b.to_block() for b in res.blocks],
             word_count=words,
             char_count=chars,
             reading_time_min=reading_time_min(words),
