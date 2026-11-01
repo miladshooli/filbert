@@ -10,3 +10,6 @@ stability_out/
 .hypothesis/
 dist/
 *.egg-info/
+
+# bench
+bench/results/

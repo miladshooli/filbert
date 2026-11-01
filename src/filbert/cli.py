@@ -165,5 +165,42 @@ def extract(
         raise typer.Exit(code=1)
 
 
+@app.command(context_settings={"allow_extra_args": True, "ignore_unknown_options": True})
+def bench(
+    ctx: typer.Context,
+    dataset: Annotated[
+        list[str] | None, typer.Option("--dataset", "-d", help="نام دیتاست (چندتایی)")
+    ] = None,
+    compare_with: Annotated[
+        str, typer.Option("--compare-with", help="خط پایه‌ها، مثلاً trafilatura")
+    ] = "",
+    check: Annotated[
+        bool, typer.Option("--check", help="خطا در افت نسبت به baseline.json")
+    ] = False,
+) -> None:
+    """اجرای bench روی دیتاست‌ها (نیاز به ریشه مخزن و extras `bench`)."""
+    import sys as _sys
+    from pathlib import Path as _Path
+
+    try:
+        from bench import run as bench_run
+    except ImportError:
+        if (_Path.cwd() / "bench" / "run.py").exists():
+            _sys.path.insert(0, str(_Path.cwd()))
+            from bench import run as bench_run
+        else:
+            console.print("[red]bench package not found; run from the repository root.")
+            raise typer.Exit(code=2) from None
+    argv: list[str] = []
+    for d in dataset or []:
+        argv += ["--dataset", d]
+    if compare_with:
+        argv += ["--compare-with", compare_with]
+    if check:
+        argv.append("--check")
+    argv += list(ctx.args)
+    raise typer.Exit(code=bench_run.main(argv))
+
+
 if __name__ == "__main__":
     app()

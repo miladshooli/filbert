@@ -1,0 +1,5 @@
+{"id": "news", "url": "https://news.example.ir/economy/123456/", "type": "news", "label_status": "gold", "site": "fixture", "notes": ""}
+{"id": "blog", "url": "https://blog.example.ir/hardware-wallet/", "type": "blog", "label_status": "gold", "site": "fixture", "notes": ""}
+{"id": "product", "url": "https://shop.example.ir/product/x12/", "type": "product", "label_status": "gold", "site": "fixture", "notes": ""}
+{"id": "landing", "url": "https://exchange.example.ir/", "type": "landing", "label_status": "gold", "site": "fixture", "notes": ""}
+{"id": "forum", "url": "https://forum.example.ir/t/usdt-tron/", "type": "forum", "label_status": "gold", "site": "fixture", "notes": ""}

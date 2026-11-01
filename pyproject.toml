@@ -46,6 +46,7 @@ packages = ["src/filbert"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+pythonpath = ["."]
 asyncio_mode = "auto"
 asyncio_default_fixture_loop_scope = "function"
 filterwarnings = ["error::DeprecationWarning:filbert.*"]
@@ -53,7 +54,7 @@ filterwarnings = ["error::DeprecationWarning:filbert.*"]
 [tool.ruff]
 line-length = 100
 target-version = "py312"
-src = ["src", "tests"]
+src = ["src", "tests", "bench"]
 extend-exclude = ["tools"]
 
 [tool.ruff.lint]
@@ -61,4 +62,4 @@ select = ["E", "F", "I", "UP", "B", "SIM", "W"]
 ignore = ["E501"]
 
 [tool.ruff.lint.isort]
-known-first-party = ["filbert"]
+known-first-party = ["filbert", "bench"]
