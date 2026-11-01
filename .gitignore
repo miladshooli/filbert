@@ -7,3 +7,6 @@ out/
 cache/
 stability_out/
 .env
+.hypothesis/
+dist/
+*.egg-info/

@@ -38,7 +38,7 @@ uv run filbert bench --dataset fa-200
 - هیچ global state؛ تنظیمات از `config.py` (pydantic-settings) تزریق می‌شود.
 
 ## وضعیت فازها
-- [ ] فاز ۱ — هسته (مدل داده، fetch+کش، preclean، Readability، سه نویسنده، CLI)
+- [x] فاز ۱ — هسته (مدل داده، fetch+کش، preclean، Readability، سه نویسنده، CLI) — 2026-11-01
 - [ ] فاز ۲ — ensemble (CETD، DOM-scorer، رأی‌گیری، fa-200، bench)
 - [ ] فاز ۳ — متادیتای کامل + فارسی
 - [ ] فاز ۴ — رندر مشروط + مقیاس
