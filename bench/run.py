@@ -120,7 +120,7 @@ def render_report(results: list[dict]) -> str:
     return "\n".join(lines)
 
 
-def check_regression(res: dict, baseline: dict) -> list[str]:
+def check_regression(res: dict, baseline: dict, *, speed: bool = True) -> list[str]:
     problems: list[str] = []
     base = baseline.get(res["dataset"], {})
     for name in ("ensemble", "pipeline"):
@@ -152,6 +152,11 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--repeat", type=int, default=1, help="تکرار برای زمان‌سنجی (کمینه زمان)")
     ap.add_argument("--check", action="store_true", help="مقایسه با baseline.json و خطا در افت")
     ap.add_argument("--update-baseline", action="store_true")
+    ap.add_argument(
+        "--no-speed-check",
+        action="store_true",
+        help="فقط F1 را با baseline مقایسه کن (CI با ماشین متفاوت)",
+    )
     ap.add_argument("--no-report", action="store_true")
     args = ap.parse_args(argv)
     logging.basicConfig(level=logging.WARNING)
@@ -190,7 +195,9 @@ def main(argv: list[str] | None = None) -> int:
         json.loads(BASELINE_PATH.read_text(encoding="utf-8")) if BASELINE_PATH.exists() else {}
     )
     if args.check:
-        problems = [p for r in results for p in check_regression(r, baseline)]
+        problems = [
+            p for r in results for p in check_regression(r, baseline, speed=not args.no_speed_check)
+        ]
         if problems:
             print("REGRESSION:\n  " + "\n  ".join(problems), file=sys.stderr)
             return 1
