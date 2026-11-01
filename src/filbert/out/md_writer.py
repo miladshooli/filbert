@@ -37,7 +37,9 @@ def front_matter(record: PageRecord) -> str:
         "dir": direction_for(lang),
         "word_count": record.content.word_count,
         "confidence": record.content.confidence,
-        "fetched_at": record.fetched_at.isoformat(timespec="seconds") if record.fetched_at else None,
+        "fetched_at": record.fetched_at.isoformat(timespec="seconds")
+        if record.fetched_at
+        else None,
     }
     body = yaml.safe_dump(data, allow_unicode=True, sort_keys=False, default_flow_style=False)
     return f"---\n{body}---\n"

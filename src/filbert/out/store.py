@@ -22,7 +22,10 @@ FORMATS: tuple[str, ...] = ("json", "html", "md")
 _BAD_CHARS_RE = re.compile(r'[<>:"/\\|?*\x00-\x1f%#&=+\s]+')
 _DASHES_RE = re.compile(r"-{2,}")
 _WIN_RESERVED = {
-    "con", "prn", "aux", "nul",
+    "con",
+    "prn",
+    "aux",
+    "nul",
     *(f"com{i}" for i in range(1, 10)),
     *(f"lpt{i}" for i in range(1, 10)),
 }
@@ -47,7 +50,9 @@ def slugify_url(url: str, max_len: int = 120) -> str:
 
 
 class Store:
-    def __init__(self, out_dir: Path, run_id: str | None = None, formats: tuple[str, ...] = FORMATS) -> None:
+    def __init__(
+        self, out_dir: Path, run_id: str | None = None, formats: tuple[str, ...] = FORMATS
+    ) -> None:
         unknown = set(formats) - set(FORMATS)
         if unknown:
             raise ValueError(f"unknown formats: {sorted(unknown)}")
