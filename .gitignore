@@ -13,3 +13,4 @@ dist/
 
 # bench
 bench/results/
+bench/datasets/*/label/
