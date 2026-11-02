@@ -45,7 +45,7 @@ def main() -> None:
         )
         i += 1
     settings = Settings(_env_file=None)
-    errors = 0
+    errors = empty = 0
     hashes: set[str] = set()
     t0 = time.perf_counter()
     with ProcessPoolExecutor(
@@ -54,8 +54,10 @@ def main() -> None:
         initargs=(settings.model_dump(mode="json"),),
     ) as ex:
         for rec in ex.map(_extract_job, jobs, chunksize=args.chunksize):
-            if rec.error or not rec.content.blocks and rec.content.text == "":
+            if rec.error:
                 errors += 1
+            elif not rec.content.text:
+                empty += 1  # پوسته‌های JS بدون متن؛ خطا نیست
             if rec.content_hash:
                 hashes.add(rec.content_hash)
     dt = time.perf_counter() - t0
@@ -65,6 +67,7 @@ def main() -> None:
         "seconds": round(dt, 1),
         "pages_per_second": round(len(jobs) / dt, 1),
         "errors": errors,
+        "empty_pages": empty,
         "distinct_hashes": len(hashes),
     }
     Path("bench/results").mkdir(exist_ok=True)
