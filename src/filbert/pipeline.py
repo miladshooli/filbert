@@ -38,6 +38,7 @@ from filbert.meta.head import extract_head
 from filbert.models import Content, HttpInfo, PageRecord, RunStats
 from filbert.out.common import direction_for
 from filbert.out.store import FORMATS, Store
+from filbert.out.webhook import WebhookSender
 
 log = logging.getLogger(__name__)
 ProgressCallback = Callable[[PageRecord | None, str, str | None], None]
@@ -304,6 +305,14 @@ async def fetch_and_extract(
         )
     render_pool = None
     robots = RobotsCache(settings.cache_dir) if settings.respect_robots else None
+    webhook: WebhookSender | None = None
+    if settings.webhook_url:
+        webhook = await WebhookSender(
+            settings.webhook_url,
+            secret=settings.webhook_secret,
+            batch_size=settings.webhook_batch,
+            run_id=run_id,
+        ).__aenter__()
     try:
         if urls and settings.render != "never":
             from filbert.fetch.render import RenderPool, RenderUnavailable
@@ -383,9 +392,14 @@ async def fetch_and_extract(
                             return
                     cache.index.update_hash(fr.url, rec.content_hash or "", run_id)
                     handle(rec, u, None)
+                    if webhook is not None:
+                        await webhook.add(rec)
 
                 await asyncio.gather(*(one(u) for u in urls))
     finally:
+        if webhook is not None:
+            await webhook.__aexit__(None, None, None)
+            stats.settings["webhook"] = dict(webhook.stats)
         if render_pool is not None:
             stats.settings["render_stats"] = dict(render_pool.stats)
             await render_pool.__aexit__(None, None, None)

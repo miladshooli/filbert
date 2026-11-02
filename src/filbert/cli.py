@@ -154,6 +154,7 @@ def crawl(
     workers: Annotated[int | None, typer.Option("--workers")] = None,
     ignore_robots: Annotated[bool, typer.Option("--ignore-robots")] = False,
     only_changed: Annotated[bool, typer.Option("--only-changed")] = False,
+    webhook: Annotated[str | None, typer.Option("--webhook")] = None,
 ) -> None:
     """خزش از سایت‌مپ یا فایل URL؛ استخراج موازی؛ فقط صفحات تغییرکرده با --only-changed."""
     if not sitemap and not urls_file:
@@ -219,6 +220,7 @@ def _run(
     ignore_robots: bool,
     only_changed: bool,
     concurrency: int | None = None,
+    webhook: str | None = None,
 ) -> None:
     fmts = _parse_formats(formats)
     if render not in ("never", "auto", "always"):
@@ -234,6 +236,8 @@ def _run(
         overrides["cache_dir"] = cache_dir
     if concurrency is not None:
         overrides["concurrency"] = concurrency
+    if webhook:
+        overrides["webhook_url"] = webhook
     settings = Settings(**overrides)
 
     from filbert.pipeline import fetch_and_extract
@@ -297,6 +301,19 @@ def _run(
                 )
     if stats.failed and not stats.ok:
         raise typer.Exit(code=1)
+
+
+@app.command()
+def export(
+    source: Annotated[Path, typer.Argument(help="پوشه run یا فایل pages.jsonl")],
+    xlsx: Annotated[Path, typer.Option("--xlsx", help="مسیر فایل Excel خروجی")],
+    no_chunks: Annotated[bool, typer.Option("--no-chunks", help="برگه chunks ساخته نشود")] = False,
+) -> None:
+    """خروجی Excel (pages / issues / headings / links / images / chunks) از یک run."""
+    from filbert.out.excel import export_xlsx
+
+    counts = export_xlsx(source, xlsx, include_chunks=not no_chunks)
+    console.print(" ".join(f"{k}={v}" for k, v in counts.items()) + f" → {xlsx}")
 
 
 @app.command()

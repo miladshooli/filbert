@@ -26,6 +26,7 @@ render = ["playwright>=1.45"]
 ml = ["lightgbm>=4.3"]
 bench = ["trafilatura>=1.9"]
 lang = ["lingua-language-detector>=2.0"]
+export = ["openpyxl>=3.1"]
 
 [project.scripts]
 filbert = "filbert.cli:app"

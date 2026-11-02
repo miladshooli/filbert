@@ -54,6 +54,11 @@ class Settings(BaseSettings):
     digits: str = Field(default="fa", pattern="^(fa|en)$")
     strip_diacritics: bool = False
 
+    # webhook (پنل SEO)
+    webhook_url: str | None = None
+    webhook_secret: str | None = None
+    webhook_batch: int = 10
+
     # چانکینگ (docs/CHUNKING.md)
     chunk: bool = True
     chunk_max_words: int = 250
