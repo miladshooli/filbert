@@ -320,6 +320,63 @@ def export(
 
 
 @app.command()
+def llm(
+    inputs: Annotated[list[str], typer.Argument(help="URL یا فایل HTML")],
+    schema: Annotated[
+        str, typer.Option("--schema", help="article | seo | مسیر JSON Schema")
+    ] = "article",
+    model: Annotated[str, typer.Option("--model")] = "claude-opus-5-5",
+    effort: Annotated[
+        str, typer.Option("--effort", help="low | medium | high | xhigh | max")
+    ] = "medium",
+    instructions: Annotated[
+        str | None, typer.Option("--instructions", help="دستور اضافه برای مدل")
+    ] = None,
+    cache_dir: Annotated[Path | None, typer.Option("--cache-dir")] = None,
+    out: Annotated[Path | None, typer.Option("--out", help="فایل JSONL خروجی")] = None,
+) -> None:
+    """استخراج ساختاریافته با Claude از Markdown تمیز صفحه (اختیاری؛ extras llm؛ خارج از مسیر اصلی)."""
+    from filbert.llm import LLMExtractor, LLMUnavailable, resolve_schema
+
+    overrides: dict[str, object] = {"respect_robots": False, "workers": 1}
+    if cache_dir is not None:
+        overrides["cache_dir"] = cache_dir
+    settings = Settings(**overrides)
+    from filbert.pipeline import fetch_and_extract
+
+    schema_cls = resolve_schema(schema)
+    _stats, records = asyncio.run(fetch_and_extract(inputs, settings=settings))
+    ex = LLMExtractor(model=model, effort=effort, cache_dir=settings.cache_dir)
+    lines: list[bytes] = []
+    for rec in records:
+        try:
+            result = ex.extract(
+                rec.content.markdown or rec.content.text or "",
+                schema_cls,
+                instructions=instructions,
+                url=rec.final_url or rec.url,
+            )
+        except LLMUnavailable as e:
+            console.print(f"[red]{rec.url}: {e}")
+            continue
+        payload = {
+            "url": rec.final_url or rec.url,
+            "schema": schema_cls.__name__,
+            "model": model,
+            **result.model_dump(),
+        }
+        lines.append(orjson.dumps(payload))
+        if out is None:
+            sys.stdout.buffer.write(orjson.dumps(payload, option=orjson.OPT_INDENT_2) + b"\n")
+    if out is not None:
+        out.write_bytes(b"\n".join(lines) + (b"\n" if lines else b""))
+        console.print(f"{len(lines)} records → {out}")
+    console.print(
+        f"llm calls={ex.stats['calls']} cache_hits={ex.stats['cache_hits']} tokens in/out={ex.stats['input_tokens']}/{ex.stats['output_tokens']}"
+    )
+
+
+@app.command()
 def chunk(
     inputs: Annotated[list[str], typer.Argument(help="URL یا فایل HTML")],
     max_words: Annotated[int, typer.Option("--max", help="بودجه هدف (کلمه)")] = 250,

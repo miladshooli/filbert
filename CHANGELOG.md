@@ -1,8 +1,11 @@
 # Changelog
 
-## [0.5.0-dev] — فاز ۵ (در حال انجام)
+## [0.5.0] — 2026-11-02 — فاز ۵: چانکینگ، خروجی‌های پنل، هوش اختیاری
 
 - **چانکینگ فارسی‌بهینه** (`filbert.chunk`، طرح در `docs/CHUNKING.md`): جداکننده جمله ZWNJ-امن (اعشار، URL، اختصار، نقل‌قول)، چانکر ساختاری روی بلوک‌ها (مرز سخت تا H3 مؤثر، بودجه ۲۵۰ کلمه/سقف ۴۰۰، هم‌پوشانی یک جمله، جدول/فهرست/کد اتمی با تقسیم امن، ادغام بخش‌های ریز)، `embed_text` با پیشوند «تیتر › مسیر هدینگ»، `content.chunks` در JSON، `chunks.jsonl` در هر run، دستور `filbert chunk`. روی fa-200: ۱۳۳۸ چانک، p10/p50/p90 = 53/143/247 کلمه، صفر چانک بالای سقف، صفر ZWNJ لبه‌ای (`bench.chunk_report`).
+- **خروجی‌های پنل:** `out/issues.py` (۱۵ قاعده ممیزی SEO: title/description طول و پیکسل، h1 گم‌شده/چندتایی، canonical، noindex، alt، محتوای کم، زبان ناسازگار، بدون JSON-LD)، `filbert export --xlsx` (برگه‌های pages/issues/headings/links/images/chunks، راست‌چین، فیلتر و freeze)، `--webhook URL` با دسته‌بندی، retry نمایی و امضای HMAC-SHA256 (`FILBERT_WEBHOOK_SECRET`).
+- **DOM-scorer یادگیرنده** (`bench.train_dom`، extras `[ml]`): آموزش روی برچسب‌های fa-200 با CV به تفکیک سایت؛ lightgbm یا fallback sklearn؛ `--dom-model data/models/dom_lgbm.pkl`. نتیجه CV end-to-end: ensemble 0.8435 → 0.8485 (+0.5، ۲ از ۵ fold بدتر) → **پیش‌فرض خاموش** تا بازبینی gold.
+- **لایه LLM اختیاری** (`filbert llm`، extras `[llm]`، SDK رسمی anthropic): استخراج schema-محور از Markdown تمیز با `messages.parse`، schemaهای آماده `article`/`seo` یا JSON Schema دلخواه، prompt caching روی system، کش پاسخ روی دیسک، مدل پیش‌فرض `claude-opus-5-5`؛ خارج از مسیر اصلی. (بدون کلید API در این محیط فقط با client ساختگی تست شده.)
 
 ## [0.4.0] — 2026-11-02 — فاز ۴: رندر مشروط و مقیاس
 

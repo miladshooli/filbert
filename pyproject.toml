@@ -27,6 +27,7 @@ ml = ["lightgbm>=4.3", "scikit-learn>=1.5", "joblib>=1.4"]
 bench = ["trafilatura>=1.9"]
 lang = ["lingua-language-detector>=2.0"]
 export = ["openpyxl>=3.1"]
+llm = ["anthropic>=1.0"]
 
 [project.scripts]
 filbert = "filbert.cli:app"

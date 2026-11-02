@@ -173,6 +173,7 @@ class PageRecord(_Base):
     structure: Structure = Field(default_factory=Structure)
     content_hash: str | None = None
     raw_html_ref: str | None = None
+    llm: dict[str, Any] | None = None  # خروجی لایه اختیاری LLM (schema-محور)؛ خارج از مسیر اصلی
     error: str | None = None
 
 

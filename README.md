@@ -19,6 +19,14 @@ uv run filbert extract https://www.digikala.com/ --render auto --ignore-robots  
 ```
 `--render auto` فقط صفحاتی را رندر می‌کند که heuristic «نیاز به JS» تشخیص دهد؛ `--only-changed` صفحات با `content_hash` یکسان را نمی‌نویسد؛ `robots.txt` پیش‌فرض رعایت می‌شود.
 
+## چانک، Excel، webhook، LLM
+```
+uv run filbert chunk https://nobitex.ir/mag/<slug>/ --max 250 --overlap 1        # چانک‌های embedding-آماده (docs/CHUNKING.md)
+uv run filbert export out/<run-id> --xlsx seo.xlsx                                # برگه‌های pages/issues/headings/links/images/chunks
+uv run filbert crawl --urls urls.txt --webhook https://panel.example/hook           # POST دسته‌ای با امضای HMAC
+uv run filbert llm https://... --schema seo                                       # نیاز به `uv sync --extra llm` و ANTHROPIC_API_KEY
+```
+
 ## استفاده به‌عنوان کتابخانه
 ```python
 from filbert import extract_html
