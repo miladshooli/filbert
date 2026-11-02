@@ -79,7 +79,7 @@ ALLOWED_ATTRS: dict[str, tuple[str, ...]] = {
 _IMG_SRC_FALLBACKS = ("src", "data-src", "data-lazy-src", "data-original")
 
 
-def _img_src(attrs: dict[str, str | None], base_url: str | None) -> str | None:
+def img_src(attrs: dict[str, str | None], base_url: str | None) -> str | None:
     for k in _IMG_SRC_FALLBACKS:
         v = (attrs.get(k) or "").strip()
         if v and not v.startswith("data:"):
@@ -100,7 +100,7 @@ def _attrs_for(tag: str, node: Node, base_url: str | None) -> str:
     out: list[str] = []
     for name in allowed:
         if tag == "img" and name == "src":
-            val = _img_src(attrs, base_url)
+            val = img_src(attrs, base_url)
         else:
             val = attrs.get(name)
             if val is None:

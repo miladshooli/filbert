@@ -24,7 +24,7 @@ def _clean(value: str | None) -> str | None:
     return v or None
 
 
-def _collect_meta(tree: Tree) -> tuple[dict[str, str], dict[str, str], dict[str, list[str]]]:
+def collect_meta(tree: Tree) -> tuple[dict[str, str], dict[str, str], dict[str, list[str]]]:
     """meta[name] (کوچک‌شده) → content؛ meta[property] → content؛ همه مقادیر چندتایی."""
     by_name: dict[str, str] = {}
     by_prop: dict[str, str] = {}
@@ -82,7 +82,7 @@ def extract_head(
     tree: Tree, base_url: str, response_headers: Mapping[str, str] | None = None
 ) -> SeoMeta:
     """از درخت کامل (قبل از preclean) متادیتای head را می‌خواند."""
-    by_name, by_prop, multi = _collect_meta(tree)
+    by_name, by_prop, multi = collect_meta(tree)
     headers = {k.lower(): v for k, v in (response_headers or {}).items()}
 
     title_node = tree.css_first("title")
