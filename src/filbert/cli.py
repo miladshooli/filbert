@@ -99,12 +99,141 @@ def extract(
     recall: Annotated[
         bool, typer.Option("--recall", help="اتحاد سه استخراج‌گر (بیشینه recall)")
     ] = False,
+    render: Annotated[
+        str, typer.Option("--render", help="never | auto | always (نیاز به extras render)")
+    ] = "never",
+    workers: Annotated[
+        int | None,
+        typer.Option("--workers", help="پردازه‌های استخراج (پیش‌فرض: تعداد هسته؛ 1 = inline)"),
+    ] = None,
+    ignore_robots: Annotated[
+        bool,
+        typer.Option("--ignore-robots", help="robots.txt را نادیده بگیر (فقط دامنه‌های خودتان)"),
+    ] = False,
+    only_changed: Annotated[
+        bool,
+        typer.Option("--only-changed", help="فقط صفحاتی که content_hash تغییر کرده نوشته شوند"),
+    ] = False,
 ) -> None:
     """استخراج محتوای اصلی و متادیتای SEO از URL یا فایل."""
-    fmts = _parse_formats(formats)
-    overrides: dict[str, object] = {"digits": digits, "recall": recall}
+    _run(
+        inputs,
+        out,
+        formats,
+        cache_dir,
+        force,
+        show_json,
+        digits,
+        recall,
+        render,
+        workers,
+        ignore_robots,
+        only_changed,
+    )
+
+
+@app.command()
+def crawl(
+    sitemap: Annotated[
+        str | None, typer.Option("--sitemap", help="URL سایت‌مپ (index هم پشتیبانی می‌شود)")
+    ] = None,
+    urls_file: Annotated[
+        Path | None, typer.Option("--urls", help="فایل متنی، هر خط یک URL")
+    ] = None,
+    limit: Annotated[int, typer.Option("--limit", help="سقف تعداد URL")] = 10_000,
+    pattern: Annotated[str | None, typer.Option("--pattern", help="regex شامل‌کردن URLها")] = None,
+    exclude: Annotated[str | None, typer.Option("--exclude", help="regex حذف URLها")] = None,
+    concurrency: Annotated[int, typer.Option("--concurrency", help="کارگران دریافت همزمان")] = 32,
+    out: Annotated[Path, typer.Option("--out", "-o")] = Path("out"),
+    formats: Annotated[str, typer.Option("--formats", "-f")] = "json,html,md",
+    cache_dir: Annotated[Path | None, typer.Option("--cache-dir")] = None,
+    force: Annotated[bool, typer.Option("--force")] = False,
+    digits: Annotated[str, typer.Option("--digits")] = "fa",
+    recall: Annotated[bool, typer.Option("--recall")] = False,
+    render: Annotated[str, typer.Option("--render")] = "never",
+    workers: Annotated[int | None, typer.Option("--workers")] = None,
+    ignore_robots: Annotated[bool, typer.Option("--ignore-robots")] = False,
+    only_changed: Annotated[bool, typer.Option("--only-changed")] = False,
+) -> None:
+    """خزش از سایت‌مپ یا فایل URL؛ استخراج موازی؛ فقط صفحات تغییرکرده با --only-changed."""
+    if not sitemap and not urls_file:
+        raise typer.BadParameter("--sitemap یا --urls لازم است")
+    overrides: dict[str, object] = {"concurrency": concurrency}
     if cache_dir is not None:
         overrides["cache_dir"] = cache_dir
+    settings = Settings(**overrides)
+    inputs: list[str] = []
+    if urls_file is not None:
+        from filbert.fetch.sitemap import read_url_file
+
+        inputs += read_url_file(urls_file.read_text(encoding="utf-8").splitlines())
+    if sitemap:
+        from filbert.fetch.cache import Cache
+        from filbert.fetch.client import Fetcher
+        from filbert.fetch.sitemap import urls_from_sitemap
+
+        async def discover() -> list[str]:
+            cache = Cache(settings.cache_dir)
+            try:
+                async with Fetcher(settings, cache) as f:
+                    return await urls_from_sitemap(
+                        f, sitemap, limit=limit, pattern=pattern, exclude=exclude
+                    )
+            finally:
+                cache.close()
+
+        with console.status("reading sitemap…"):
+            inputs += asyncio.run(discover())
+    inputs = list(dict.fromkeys(inputs))[:limit]
+    console.print(f"{len(inputs)} URL")
+    if not inputs:
+        raise typer.Exit(code=1)
+    _run(
+        inputs,
+        out,
+        formats,
+        cache_dir,
+        force,
+        False,
+        digits,
+        recall,
+        render,
+        workers,
+        ignore_robots,
+        only_changed,
+        concurrency=concurrency,
+    )
+
+
+def _run(
+    inputs: list[str],
+    out: Path,
+    formats: str,
+    cache_dir: Path | None,
+    force: bool,
+    show_json: bool,
+    digits: str,
+    recall: bool,
+    render: str,
+    workers: int | None,
+    ignore_robots: bool,
+    only_changed: bool,
+    concurrency: int | None = None,
+) -> None:
+    fmts = _parse_formats(formats)
+    if render not in ("never", "auto", "always"):
+        raise typer.BadParameter("--render must be never|auto|always")
+    overrides: dict[str, object] = {
+        "digits": digits,
+        "recall": recall,
+        "render": render,
+        "workers": workers,
+        "respect_robots": not ignore_robots,
+    }
+    if cache_dir is not None:
+        overrides["cache_dir"] = cache_dir
+    if concurrency is not None:
+        overrides["concurrency"] = concurrency
     settings = Settings(**overrides)
 
     from filbert.pipeline import fetch_and_extract
@@ -131,6 +260,7 @@ def extract(
                 out_dir=out,
                 formats=fmts,
                 force=force,
+                only_changed=only_changed,
                 on_result=on_result,
             )
         )
@@ -138,7 +268,8 @@ def extract(
     table = Table(title=f"filbert run {stats.run_id}", show_lines=False)
     for col in ("status", "words", "blocks", "title", "source"):
         table.add_column(col)
-    for rec, source, error in results:
+    shown = results if len(results) <= 40 else results[:40]
+    for rec, source, error in shown:
         if rec is None:
             table.add_row("[red]ERR", "-", "-", f"[red]{error}", source)
         else:
@@ -152,8 +283,11 @@ def extract(
                 source,
             )
     console.print(table)
+    if len(results) > 40:
+        console.print(f"… و {len(results) - 40} مورد دیگر")
     console.print(
-        f"ok={stats.ok} failed={stats.failed} p50={stats.p50_ms}ms p95={stats.p95_ms}ms → {out / stats.run_id}"
+        f"ok={stats.ok} failed={stats.failed} rendered={stats.rendered} unchanged={stats.skipped_unchanged} "
+        f"robots={stats.robots_blocked} p50={stats.p50_ms}ms p95={stats.p95_ms}ms → {out / stats.run_id}"
     )
     if show_json:
         for rec, _source, _error in results:

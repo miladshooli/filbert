@@ -163,6 +163,11 @@ class Fetcher:
         )
         return self
 
+    @property
+    def client(self) -> httpx.AsyncClient:
+        assert self._client is not None, "use `async with Fetcher(...)`"
+        return self._client
+
     async def __aexit__(self, *exc: object) -> None:
         if self._client is not None:
             await self._client.aclose()

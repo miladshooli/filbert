@@ -40,6 +40,12 @@ class Settings(BaseSettings):
     user_agents: tuple[str, ...] = DEFAULT_USER_AGENTS
     accept_language: str = "fa-IR,fa;q=0.9,en;q=0.5"
     concurrency: int = 32  # کارگران سراسری
+    respect_robots: bool = True
+    workers: int | None = None  # پردازه‌های استخراج؛ None = تعداد هسته؛ 0/1 = inline
+    render: str = Field(default="never", pattern="^(never|auto|always)$")
+    render_contexts: int = 3
+    render_timeout: float = 10.0
+    always_render_domains: tuple[str, ...] = ()
 
     # استخراج
     min_text_chars: int = 200  # زیر این مقدار → fallback به recall و low_confidence

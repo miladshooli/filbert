@@ -122,7 +122,8 @@ class CacheIndex:
             " ON CONFLICT(url) DO UPDATE SET raw_key=excluded.raw_key, fetched_at=excluded.fetched_at,"
             " final_url=excluded.final_url, status=excluded.status, etag=excluded.etag,"
             " last_modified=excluded.last_modified, content_type=excluded.content_type,"
-            " encoding=excluded.encoding, content_hash=excluded.content_hash, run_id=excluded.run_id,"
+            " encoding=excluded.encoding, content_hash=COALESCE(excluded.content_hash, pages.content_hash),"
+            " run_id=COALESCE(excluded.run_id, pages.run_id),"
             " rendered=excluded.rendered",
             (
                 e.url,

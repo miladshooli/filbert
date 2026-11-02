@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import hashlib
 import re
+import secrets
 from datetime import UTC, datetime
 from pathlib import Path
 from urllib.parse import unquote, urlsplit
@@ -32,7 +33,8 @@ _WIN_RESERVED = {
 
 
 def make_run_id(now: datetime | None = None) -> str:
-    return (now or datetime.now(UTC)).strftime("%Y%m%d-%H%M%S")
+    """`YYYYMMDD-HHMMSS-xxxx`؛ پسوند تصادفی تا دو اجرا در یک ثانیه یک پوشه نشوند."""
+    return (now or datetime.now(UTC)).strftime("%Y%m%d-%H%M%S") + "-" + secrets.token_hex(2)
 
 
 def slugify_url(url: str, max_len: int = 120) -> str:

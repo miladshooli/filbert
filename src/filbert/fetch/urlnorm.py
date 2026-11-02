@@ -48,11 +48,16 @@ _PCT_RE = re.compile(r"%[0-9a-fA-F]{2}")
 _PATH_UNSAFE = frozenset(' "<>\\^`{|}')
 
 
+_PATH_NEEDS_ENC_RE = re.compile(r"[^A-Za-z0-9._~/%!$&'()*+,;=:@\-]|%[0-9a-f]{2}")
+
+
 def _encode_path(path: str) -> str:
     """percent-encoding یکدست مسیر: غیر-ASCII و کاراکترهای ناامن → %XX؛ escapeهای موجود بزرگ‌نویسی.
 
     `تهران` و `%D8%AA%D9%87%D8%B1%D8%A7%D9%86` به یک شکل می‌رسند؛ `%2F` دست نمی‌خورد.
     """
+    if not _PATH_NEEDS_ENC_RE.search(path):
+        return path  # مسیر سریع: اکثر لینک‌ها
     path = _PCT_RE.sub(lambda m: m.group(0).upper(), path)
     return "".join(quote(c, safe="") if (ord(c) > 127 or c in _PATH_UNSAFE) else c for c in path)
 

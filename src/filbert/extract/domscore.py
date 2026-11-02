@@ -87,14 +87,14 @@ class DomResult:
 
 
 def _ancestor_class_score(
-    node: Node, rules: ReadabilityRules, levels: int = 3
+    node: Node, rules: ReadabilityRules, levels: int = 3, cids: dict[int, str] | None = None
 ) -> tuple[float, float]:
     pos = neg = 0.0
     cur: Node | None = node
     for i in range(levels + 1):
         if cur is None or cur.tag in ("body", "html"):
             break
-        cid = class_id(cur)
+        cid = _cid(cur, cids)
         if cid:
             w = 1.0 / (i + 1)
             if rules.positive.search(cid):
@@ -105,17 +105,29 @@ def _ancestor_class_score(
     return pos, neg
 
 
-def _repeat_item(node: Node, levels: int = 5, min_group_chars: int = 300) -> Node | None:
+def _cid(node: Node, cache: dict[int, str] | None) -> str:
+    if cache is None:
+        return class_id(node)
+    mid = node.mem_id
+    v = cache.get(mid)
+    if v is None:
+        v = cache[mid] = class_id(node)
+    return v
+
+
+def _repeat_item(
+    node: Node, levels: int = 5, min_group_chars: int = 300, cids: dict[int, str] | None = None
+) -> Node | None:
     """آیتمِ گروه تکرارشونده‌ای که این بلوک داخل آن است (جدی تا ۵ سطح با ≥۳ خواهر/برادر هم‌class،
     متن مجموع ≥ min_group_chars و چگالی لینک گروه < ۰.۵)؛ وگرنه None."""
     cur: Node | None = node
     for _ in range(levels):
         if cur is None or cur.tag in ("body", "html"):
             return None
-        cid = class_id(cur)
+        cid = _cid(cur, cids)
         parent = cur.parent
         if cid and parent is not None:
-            same = [c for c in _element_children(parent) if class_id(c) == cid]
+            same = [c for c in _element_children(parent) if _cid(c, cids) == cid]
             if len(same) >= 3:
                 total = sum(inner_text_len(c) for c in same)
                 if total >= min_group_chars and link_density(parent) < 0.5:
@@ -125,13 +137,15 @@ def _repeat_item(node: Node, levels: int = 5, min_group_chars: int = 300) -> Nod
     return None
 
 
-def repeat_main_flags(cands: list[tuple[Node, str]], texts: list[str]) -> list[float]:
+def repeat_main_flags(
+    cands: list[tuple[Node, str]], texts: list[str], cids: dict[int, str] | None = None
+) -> list[float]:
     """۱ برای بلوکی که در یک آیتم تکرارشونده، بزرگ‌ترین بلوک متنی آیتم است (یا ≥۵۰٪ آن)؛
     خطوط متای کوتاه (تاریخ، تعداد پست) ۰ می‌گیرند."""
     items: list[int | None] = []
     best: dict[int, int] = {}
     for (node, _), text in zip(cands, texts, strict=True):
-        item = _repeat_item(node)
+        item = _repeat_item(node, cids=cids)
         mid = item.mem_id if item is not None else None
         items.append(mid)
         if mid is not None:
@@ -179,12 +193,13 @@ def compute_features(
     lengths = [len(t) for t in texts]
     largest = max(range(len(cands)), key=lambda i: lengths[i])
     span = max(1, len(cands) - 1)
-    repeat_flags = repeat_main_flags(cands, texts)
+    cids: dict[int, str] = {}
+    repeat_flags = repeat_main_flags(cands, texts, cids)
     feats: list[Features] = []
     for i, ((node, tag), text) in enumerate(zip(cands, texts, strict=True)):
         words = text.split()
         avg_word = (sum(len(w) for w in words) / len(words)) if words else 0.0
-        pos, neg = _ancestor_class_score(node, rules)
+        pos, neg = _ancestor_class_score(node, rules, cids=cids)
         dist = abs(i - largest) / span
         feats.append(
             Features(

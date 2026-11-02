@@ -171,5 +171,7 @@ class RunStats(_Base):
     ok: int = 0
     failed: int = 0
     rendered: int = 0
+    skipped_unchanged: int = 0
+    robots_blocked: int = 0
     p50_ms: float | None = None
     p95_ms: float | None = None
