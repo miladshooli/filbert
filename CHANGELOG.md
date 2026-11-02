@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.3.0] — 2026-11-02 — فاز ۳: متادیتای کامل + فارسی
+
+- `meta/jsonld.py`: پارس tolerant همه JSON-LDها (آرایه، `@graph`، CDATA، ویرگول اضافه، JSON خراب)، `json_ld_types`، نویسنده/تاریخ/کلیدواژه از JSON-LD.
+- `meta/dates.py`: ISO 8601/RFC 2822، تاریخ شمسی (`۱۴۰۵/۰۸/۱۰`، `۱۰ آبان ۱۴۰۵`) و میلادی (فارسی/انگلیسی) در متن، تبدیل با jdatetime، `published_at_raw` با ارقام اصلی؛ تست hypothesis round-trip شمسی.
+- `meta/social.py`: OG/Twitter با URL مطلق؛ زنجیره نویسنده `meta[name=author]` → JSON-LD → `rel=author` → لینک `/author/` → class/byline، با حذف پیشوند و تاریخ.
+- `meta/structure.py`: هدینگ‌ها/لینک‌ها/تصاویر از درخت کامل پیش از preclean؛ `in_main` با عضویت نود در بلوک‌های برنده؛ خلاصه‌ها.
+- `meta/enrich.py`: زنجیره تاریخ `article:published_time` → JSON-LD → `<time datetime>` → `meta[name=date]` → عناصر با class تاریخ → regex در ابتدای متن اصلی؛ `modified_at`؛ طول و پهنای پیکسلی تقریبی description؛ تشخیص زبان.
+- `fa/lang.py`: `fa`/`ar`/`en`/`mixed` با نسبت خط و حروف اختصاصی + کلمات پربسامد؛ lingua اختیاری (`[lang]`) فقط برای موارد مبهم.
+- `models`: `author_source`, `published_at_source`, `modified_at_raw`, `lang_scores`, `title_length`, `description_length`, `description_px_est`.
+- bench: gold متادیتای نیمه‌خودکار (`bench.meta_gold`؛ published_at/author از داده ساخت‌یافته خود سایت) و خط پوشش متادیتا در گزارش. دقت فیلدی روی fa-200: title/description/canonical/published_at/author = 1.0 (gold نیمه‌خودکار؛ بازبینی دستی لازم).
+- کارایی: کش و مسیر سریع `normalize_url`، ساخت مدل‌های ساختار فقط یک بار. pipeline p50 روی fa-200: 19.5ms (پیش از فاز ۳: 15.8ms؛ هزینه جمع‌آوری لینک/تصویر/هدینگ و JSON-LD).
+
 ## [0.2.0] — 2026-11-01 — فاز ۲: ensemble و bench
 
 - `extract/blocks.py`: `RawBlock` مشترک سه استخراج‌گر (کلید XPath+hash، ترتیب سند، منطق تولید بلوک).

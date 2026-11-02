@@ -132,10 +132,25 @@ def render_report(results: list[dict]) -> str:
                     f"| {n} | " + " | ".join(str(s["by_type"].get(t, "-")) for t in types) + " |"
                 )
         if res["meta"]:
+            meta_n = res.get("meta_n", {})
             lines += [
                 "",
-                "دقت متادیتا (pipeline، exact match): "
-                + ", ".join(f"{k}={v}" for k, v in res["meta"].items()),
+                "دقت متادیتا (pipeline، exact match؛ n = صفحات دارای gold آن فیلد): "
+                + ", ".join(f"{k}={v} (n={meta_n.get(k, '?')})" for k, v in res["meta"].items()),
+            ]
+        cov = res.get("coverage")
+        if cov and cov.get("n"):
+            n = cov["n"]
+            langs = ", ".join(
+                f"{k[5:]}={v}" for k, v in sorted(cov.items()) if k.startswith("lang_")
+            )
+            lines += [
+                "",
+                f"پوشش متادیتا روی {n} صفحه: author={cov['author']} ({cov['author'] * 100 // n}٪)، "
+                f"published_at={cov['published_at']} ({cov['published_at'] * 100 // n}٪)، "
+                f"JSON-LD={cov['json_ld']}؛ زبان تشخیص‌داده‌شده: {langs}؛ "
+                f"میانگین هدینگ={cov['headings'] / n:.1f}، لینک={cov['links'] / n:.1f}، "
+                f"تصاویر بدون alt={cov['images_missing_alt']}",
             ]
         lines += ["", "برچسب‌ها: " + json.dumps(res["label_summary"], ensure_ascii=False), ""]
     return "\n".join(lines)
