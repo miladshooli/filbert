@@ -118,9 +118,8 @@ class LLMExtractor:
             raise LLMUnavailable(f"model refused: {getattr(details, 'category', None)}")
         parsed = response.parsed_output
         if parsed is None:
-            raise LLMUnavailable(
-                "no parsed output (stop_reason=%s)" % getattr(response, "stop_reason", None)
-            )
+            stop = getattr(response, "stop_reason", None)
+            raise LLMUnavailable(f"no parsed output (stop_reason={stop})")
         if self.cache_dir is not None:
             (self.cache_dir / f"{key}.json").write_text(parsed.model_dump_json(), encoding="utf-8")
         return parsed
