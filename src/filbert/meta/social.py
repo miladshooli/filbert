@@ -32,6 +32,9 @@ _AUTHOR_PREFIX_RE = re.compile(
     r"^\s*(?:نویسنده|نوشته(?:‌|\s)?(?:شده)?(?:\s+توسط)?|توسط|گزارش(?:گر)?|خبرنگار|by|author|written by)\s*[:：\-–]?\s*",
     re.IGNORECASE,
 )
+_AUTHOR_HREF_RE = re.compile(
+    r"/(?:author|authors|writer|writers|nevisande|nevisandeh|reporter|journalist|byline)s?/"
+)
 _MAX_AUTHOR_LEN = 80
 
 
@@ -80,6 +83,12 @@ def extract_author(tree: Tree, jsonld_items: list[dict[str, Any]]) -> tuple[str 
         a = clean_author(node_text(link))
         if a:
             return a, "rel_author"
+    for link in tree.css("a[href]"):
+        href = (link.attributes.get("href") or "").lower()
+        if _AUTHOR_HREF_RE.search(href):
+            a = clean_author(node_text(link))
+            if a:
+                return a, "author_link"
     body = tree.body
     if body is not None:
         for n in body.traverse():

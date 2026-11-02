@@ -33,6 +33,8 @@ def test_author_chain() -> None:
     )
     assert extract_author(t3, []) == ("Reza", "rel_author")
     assert extract_author(parse("<html><body><p>x</p></body></html>"), []) == (None, None)
+    blog = parse(fixture_html("blog.html"))
+    assert extract_author(blog, []) == ("علی", "author_link")
 
 
 def test_clean_author() -> None:
