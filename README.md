@@ -11,6 +11,14 @@ uv run filbert extract https://nobitex.ir/mag/ --out out/ --formats json,html,md
 uv run filbert extract page.html --out out/            # فایل محلی
 ```
 
+## خزش و مقیاس
+```
+uv run filbert crawl --sitemap https://nobitex.ir/mag/sitemap.xml --limit 500 --only-changed --out out/
+uv run filbert crawl --urls urls.txt --workers 8 --concurrency 32 --render auto     # رندر مشروط (uv sync --extra render; playwright install chromium)
+uv run filbert extract https://www.digikala.com/ --render auto --ignore-robots      # فقط دامنه‌های خودتان
+```
+`--render auto` فقط صفحاتی را رندر می‌کند که heuristic «نیاز به JS» تشخیص دهد؛ `--only-changed` صفحات با `content_hash` یکسان را نمی‌نویسد؛ `robots.txt` پیش‌فرض رعایت می‌شود.
+
 ## استفاده به‌عنوان کتابخانه
 ```python
 from filbert import extract_html

@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.4.0] — 2026-11-02 — فاز ۴: رندر مشروط و مقیاس
+
+- `fetch/needs_js.py`: heuristic «نیاز به JS» (متن قابل‌مشاهده/حجم HTML، پوسته خالی `#root/#app/#__next/#__nuxt`، نسبت script، دامنه‌های همیشه‌رندر).
+- `fetch/render.py`: استخر Playwright (اختیاری `[render]`): ۲–۴ context، بلاک تصویر/فونت/مدیا/استایل، سقف networkidle، ری‌استارت پیشگیرانه و بازیابی کرش. `--render auto|always`؛ HTML رندرشده در کش با `rendered=1`. آزمایش واقعی: دیجی‌کالا و اُکالا تشخیص و رندر شدند (دیجی‌کالا ۰ → ۳۴۰ کلمه).
+- `fetch/robots.py`: robots.txt یک بار در هر دامنه، کش ۲۴ساعته حافظه+دیسک، `--ignore-robots`.
+- `fetch/sitemap.py` + `filbert crawl --sitemap|--urls --limit --pattern --exclude --concurrency --only-changed --workers --render`.
+- `pipeline`: استخراج در ProcessPool (≥۴ URL)، `--only-changed` با `content_hash` در `index.sqlite`، شمارنده‌های `rendered/skipped_unchanged/robots_blocked` در `run.json`؛ run-id یکتا در یک ثانیه؛ upsert کش `content_hash` را نگه می‌دارد.
+- `extract/markdown.py`: Markdown مستقیم از نودها (markdownify فقط fallback).
+- `extract/blocks.PageContext`: آمار نود و کش بلوک مشترک بین سه استخراج‌گر؛ چگالی لینک یکدست → **F1 ensemble روی fa-200: 0.840 در برابر Trafilatura 0.798 (+4.2؛ معیار خروج فاز ۲ برآورده شد)**.
+- `bench/scale.py`: ۱۰٬۰۰۰ سند از کش با ۸ پردازه: **177 صفحه/ثانیه**، صفر خطا (392 صفحه خالی = پوسته‌های JS). `bench.speed`: pipeline p50 18ms / p95 54ms؛ 41 / 105 / 115 صفحه بر ثانیه با ۱/۴/۸ پردازه؛ پیک حافظه 15MB. **هدف ۳۰۰ صفحه/ثانیه برآورده نشد** (ماشین ۴+۴ هسته؛ مقیاس‌پذیری ۳×).
+- تست پایداری Playwright (۴ دقیقه، ۳ context، VPN): موفقیت ۹۶.۴٪، ۰ کرش — `docs/stability-2026-11-02.md`؛ تست ۲ ساعته ویندوز باقی است.
+
 ## [0.3.0] — 2026-11-02 — فاز ۳: متادیتای کامل + فارسی
 
 - `meta/jsonld.py`: پارس tolerant همه JSON-LDها (آرایه، `@graph`، CDATA، ویرگول اضافه، JSON خراب)، `json_ld_types`، نویسنده/تاریخ/کلیدواژه از JSON-LD.
