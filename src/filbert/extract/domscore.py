@@ -9,6 +9,9 @@ from __future__ import annotations
 import math
 import re
 from dataclasses import dataclass, field
+from functools import lru_cache
+from pathlib import Path
+from typing import Any
 
 from filbert.extract.blocks import (
     HEADING_TAGS,
@@ -236,6 +239,66 @@ def compute_features(
     return feats
 
 
+FEATURE_ORDER: tuple[str, ...] = (
+    "length",
+    "link_ratio",
+    "punct",
+    "class_pos",
+    "class_neg",
+    "dist_largest",
+    "heading_near",
+    "siblings",
+    "depth",
+    "avg_word",
+    "has_number",
+    "list_or_table",
+    "quote_or_code",
+    "repeat_group",
+    "neighbor",
+)
+
+
+class DomModel:
+    """مدل lightgbm اختیاری (extras `[ml]`) روی همان ویژگی‌ها؛ با `load_dom_model(path)` ساخته می‌شود."""
+
+    def __init__(self, booster: Any, threshold: float = 0.5) -> None:
+        self.booster = booster
+        self.threshold = threshold
+
+    def predict(self, feats: list[Features]) -> list[float]:
+        import numpy as np
+
+        rows = np.array([[getattr(f, k) for k in FEATURE_ORDER] for f in feats], dtype=float)
+        if hasattr(self.booster, "predict_proba"):  # sklearn
+            return [float(x) for x in self.booster.predict_proba(rows)[:, 1]]
+        return [float(x) for x in self.booster.predict(rows)]  # lightgbm Booster
+
+
+@lru_cache(maxsize=4)
+def load_dom_model(path: str | None) -> DomModel | None:
+    if not path:
+        return None
+    p = Path(path)
+    if not p.exists():
+        return None
+    meta = p.with_suffix(".json")
+    thr = 0.5
+    if meta.exists():
+        import json
+
+        thr = float(json.loads(meta.read_text(encoding="utf-8")).get("threshold", 0.5))
+    try:
+        if p.suffix == ".txt":
+            import lightgbm as lgb
+
+            return DomModel(lgb.Booster(model_file=str(p)), threshold=thr)
+        import joblib
+
+        return DomModel(joblib.load(p), threshold=thr)
+    except (ImportError, OSError):  # lightgbm بدون libomp یا joblib نصب‌نشده
+        return None
+
+
 def linear_score(f: Features, w: dict[str, float]) -> float:
     s = w["bias"]
     for k, v in f.as_dict().items():
@@ -249,6 +312,7 @@ def extract(
     base_url: str | None = None,
     weights: dict[str, float] | None = None,
     ctx: PageContext | None = None,
+    model: DomModel | None = None,
 ) -> DomResult:
     body = tree.body
     if body is None:
@@ -267,9 +331,14 @@ def extract(
     for i, f in enumerate(feats):
         nb = [raw[j] for j in (i - 1, i + 1) if 0 <= j < len(raw)]
         f.neighbor = max(0.0, sum(nb) / len(nb)) if nb else 0.0
-    for (node, tag), f in zip(cands, feats, strict=True):
-        prob = 1.0 / (1.0 + math.exp(-linear_score(f, w)))
-        if prob >= 0.5:
+    if model is not None:
+        probs = model.predict(feats)
+        thr = model.threshold
+    else:
+        probs = [1.0 / (1.0 + math.exp(-linear_score(f, w))) for f in feats]
+        thr = 0.5
+    for (node, tag), prob in zip(cands, probs, strict=True):
+        if prob >= thr:
             emit_block(node, tag, base_url, res.blocks, source=SOURCE, ctx=ctx)
     ensure_h1(body, res.blocks, base_url, source=SOURCE, ctx=ctx)
     return res

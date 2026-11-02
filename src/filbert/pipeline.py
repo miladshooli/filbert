@@ -21,6 +21,7 @@ from filbert.chunk import ChunkOptions, chunk_blocks
 from filbert.config import Settings
 from filbert.extract import ensemble
 from filbert.extract.cleanhtml import build_article
+from filbert.extract.domscore import load_dom_model
 from filbert.extract.domtext import node_text, parse
 from filbert.extract.markdown import block_to_markdown
 from filbert.extract.preclean import preclean
@@ -72,7 +73,12 @@ def extract_html(
     structure_draft = structure.collect(tree, final)
     preclean(tree, rules.preclean)
     res = ensemble.extract(
-        tree, rules, base_url=final, min_text_chars=settings.min_text_chars, recall=settings.recall
+        tree,
+        rules,
+        base_url=final,
+        min_text_chars=settings.min_text_chars,
+        recall=settings.recall,
+        dom_model=load_dom_model(str(settings.dom_model_path) if settings.dom_model_path else None),
     )
 
     text_raw = res.text

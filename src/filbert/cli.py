@@ -221,6 +221,7 @@ def _run(
     only_changed: bool,
     concurrency: int | None = None,
     webhook: str | None = None,
+    dom_model: Path | None = None,
 ) -> None:
     fmts = _parse_formats(formats)
     if render not in ("never", "auto", "always"):
@@ -238,6 +239,8 @@ def _run(
         overrides["concurrency"] = concurrency
     if webhook:
         overrides["webhook_url"] = webhook
+    if dom_model is not None:
+        overrides["dom_model_path"] = dom_model
     settings = Settings(**overrides)
 
     from filbert.pipeline import fetch_and_extract

@@ -46,12 +46,16 @@ class EnsembleResult:
         return "\n\n".join(b.text for b in self.blocks if b.text)
 
 
-def run_extractors(tree: Tree, rules: Rules, base_url: str | None) -> dict[str, list[RawBlock]]:
+def run_extractors(
+    tree: Tree, rules: Rules, base_url: str | None, dom_model: domscore.DomModel | None = None
+) -> dict[str, list[RawBlock]]:
     ctx = PageContext.build(tree.body)  # آمار نود و کش بلوک‌ها یک بار برای هر سه
     return {
         readability.SOURCE: readability.extract(tree, rules.readability, base_url, ctx=ctx).blocks,
         cetd.SOURCE: cetd.extract(tree, base_url, ctx=ctx).blocks,
-        domscore.SOURCE: domscore.extract(tree, rules.readability, base_url, ctx=ctx).blocks,
+        domscore.SOURCE: domscore.extract(
+            tree, rules.readability, base_url, ctx=ctx, model=dom_model
+        ).blocks,
     }
 
 
@@ -189,8 +193,12 @@ def extract(
     *,
     min_text_chars: int = 200,
     recall: bool = False,
+    dom_model: domscore.DomModel | None = None,
 ) -> EnsembleResult:
     """درخت (پس از preclean) → خروجی ensemble."""
     return merge(
-        tree, run_extractors(tree, rules, base_url), min_text_chars=min_text_chars, recall=recall
+        tree,
+        run_extractors(tree, rules, base_url, dom_model),
+        min_text_chars=min_text_chars,
+        recall=recall,
     )

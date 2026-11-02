@@ -1,0 +1,26 @@
+{
+  "threshold": 0.5,
+  "features": [
+    "length",
+    "link_ratio",
+    "punct",
+    "class_pos",
+    "class_neg",
+    "dist_largest",
+    "heading_near",
+    "siblings",
+    "depth",
+    "avg_word",
+    "has_number",
+    "list_or_table",
+    "quote_or_code",
+    "repeat_group",
+    "neighbor"
+  ],
+  "backend": "sklearn-hgb",
+  "folds": 5,
+  "n_pages": 188,
+  "ensemble_f1_hand_weights": 0.8435,
+  "ensemble_f1_lgbm_cv": 0.8485,
+  "block_auc_cv": 0.8934
+}

@@ -48,6 +48,7 @@ class Settings(BaseSettings):
     always_render_domains: tuple[str, ...] = ()
 
     # استخراج
+    dom_model_path: Path | None = None  # مدل lightgbm اختیاری برای DOM-scorer (extras ml)
     min_text_chars: int = 200  # زیر این مقدار → fallback به recall و low_confidence
     recall: bool = False  # اتحاد سه استخراج‌گر به‌جای رأی‌گیری
     default_lang: str = "fa"
