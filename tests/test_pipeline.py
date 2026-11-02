@@ -34,6 +34,43 @@ def test_extract_html_news_record() -> None:
     assert rec.seo.keywords == ["بیت‌کوین", "ارز دیجیتال", "بازار"]
 
 
+def test_phase3_metadata_on_news_fixture() -> None:
+    rec = extract_html(fixture_html("news.html"), "https://news.example.ir/economy/123456/")
+    seo, st = rec.seo, rec.structure
+    assert seo.json_ld_types == ["NewsArticle"]
+    assert seo.author == "سارا احمدی" and seo.author_source == "class"
+    assert (
+        seo.published_at == "2026-10-31T09:00:00+03:30"
+        and seo.published_at_source == "time_element"
+    )
+    assert seo.published_at_raw == "2026-10-31T09:00:00+03:30"
+    assert seo.lang_detected == "fa" and seo.lang_scores["arabic_script"] > 0.8
+    assert seo.open_graph["og:title"] and seo.title_length and seo.description_px_est > 100
+    assert st.headings[0].level == 1 and st.headings[0].in_main
+    assert any(h.text == "پربازدیدترین‌ها" and not h.in_main for h in st.headings)
+    assert (
+        st.links_summary.in_main == 0
+    )  # بدنه خبر لینک ندارد؛ لینک‌های tags/share با preclean حذف شده‌اند
+    assert st.links_summary.external >= 2 and st.links_summary.internal >= 5
+    assert st.images_summary.total == 1 and st.images[0].in_main
+    data = json.loads(rec.model_dump_json())
+    assert data["seo"]["json_ld"][0]["headline"] == "افزایش قیمت بیت‌کوین"
+
+
+def test_jalali_date_from_text_fallback() -> None:
+    html = (
+        "<html><body><article><h1>خبر</h1><div class='news-date'>۱۰ آبان ۱۴۰۵ - ۱۲:۳۰</div><p>"
+        + "متن خبر طولانی است. " * 30
+        + "</p></article></body></html>"
+    )
+    rec = extract_html(html, "https://a.ir/n/1")
+    assert (
+        rec.seo.published_at == "2026-11-01T12:30:00"
+        and rec.seo.published_at_source == "date_class"
+    )
+    assert rec.seo.published_at_raw.startswith("۱۰ آبان ۱۴۰۵")
+
+
 def test_text_normalized_but_raw_kept() -> None:
     html = "<html><body><article><p>" + "كيف پول ٠١٢ خوب است. " * 5 + "</p></article></body></html>"
     rec = extract_html(html, "https://a.ir/")

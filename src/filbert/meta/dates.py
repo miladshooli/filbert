@@ -146,16 +146,16 @@ def parse_text(text: str, *, source: str = "text") -> ParsedDate | None:
     def add(m: re.Match[str], iso_date: str | None, cal: str) -> None:
         if iso_date is None:
             return
-        raw = m.group(0)
-        tail = s[m.end() : m.end() + 12]
+        end = m.end()
+        tail = s[end : end + 12]
         tm = _TIME_RE.search(tail)
         iso = iso_date
         if tm and tail[: tm.start()].strip(" -،,|") == "":
             iso = f"{iso_date}T{int(tm.group(1)):02d}:{tm.group(2)}:{tm.group(3) or '00'}"
-            raw = raw + tail[: tm.end()]
-        candidates.append(
-            (m.start(), ParsedDate(iso=iso, raw=raw.strip(), calendar=cal, source=source))
-        )
+            end += tm.end()
+        # ارقام یک‌به‌یک تبدیل شده‌اند؛ موقعیت‌ها در متن اصلی یکسان است → raw با ارقام اصلی
+        raw = text[m.start() : end].strip()
+        candidates.append((m.start(), ParsedDate(iso=iso, raw=raw, calendar=cal, source=source)))
 
     for m in _JALALI_NUMERIC_RE.finditer(s):
         add(m, jalali_to_iso(int(m.group(1)), int(m.group(2)), int(m.group(3))), "jalali")

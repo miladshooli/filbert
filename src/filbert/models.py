@@ -59,17 +59,24 @@ class SeoMeta(_Base):
     canonical_source: str | None = None
     robots: Robots = Field(default_factory=Robots)
     hreflang: list[Hreflang] = Field(default_factory=list)
+    title_length: int | None = None
+    description_length: int | None = None
+    description_px_est: int | None = None  # تخمین پهنای پیکسلی در SERP (فونت فارسی پهن‌تر است)
     lang_declared: str | None = None
     lang_source: str | None = None
     lang_detected: str | None = None
+    lang_scores: dict[str, float] = Field(default_factory=dict)
     open_graph: dict[str, str] = Field(default_factory=dict)
     twitter: dict[str, str] = Field(default_factory=dict)
     json_ld: list[Any] = Field(default_factory=list)
     json_ld_types: list[str] = Field(default_factory=list)
     author: str | None = None
+    author_source: str | None = None
     published_at: str | None = None
     published_at_raw: str | None = None
+    published_at_source: str | None = None
     modified_at: str | None = None
+    modified_at_raw: str | None = None
 
 
 class Block(_Base):

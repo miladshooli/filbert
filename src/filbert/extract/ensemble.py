@@ -33,6 +33,7 @@ class Voted:
 @dataclass(slots=True)
 class EnsembleResult:
     blocks: list[Block] = field(default_factory=list)
+    raw_blocks: list[RawBlock] = field(default_factory=list)  # با ارجاع به نود؛ برای in_main ساختار
     confidence: float | None = None
     low_confidence: bool = False
     recall_mode: bool = False
@@ -165,6 +166,7 @@ def merge(
         res.low_confidence = True
     n = len(outputs) or 1
     res.blocks = [v.block.to_block(votes=v.votes) for v in chosen]
+    res.raw_blocks = [v.block for v in chosen]
     if chosen:
         res.confidence = round(sum(v.votes for v in chosen) / (n * len(chosen)), 3)
     if len(res.text) < min_text_chars:

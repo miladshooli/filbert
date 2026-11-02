@@ -18,7 +18,7 @@ from filbert import __version__
 from filbert.config import Settings
 from filbert.extract import ensemble
 from filbert.extract.cleanhtml import build_article
-from filbert.extract.domtext import parse
+from filbert.extract.domtext import node_text, parse
 from filbert.extract.preclean import preclean
 from filbert.extract.rules import load_rules
 from filbert.fa.normalize import normalize_text
@@ -26,6 +26,8 @@ from filbert.fa.tokenize import char_count, reading_time_min, word_count
 from filbert.fetch.cache import Cache
 from filbert.fetch.client import Fetcher, FetchError, FetchResult, decode_body, detect_encoding
 from filbert.fetch.urlnorm import normalize_url
+from filbert.meta import structure
+from filbert.meta.enrich import enrich_head, finish
 from filbert.meta.head import extract_head
 from filbert.models import Content, HttpInfo, PageRecord, RunStats
 from filbert.out.common import direction_for
@@ -60,6 +62,9 @@ def extract_html(
 
     tree = parse(html)
     seo = extract_head(tree, final, response_headers)  # پیش از preclean: همان چیزی که گوگل می‌بیند
+    seo, date_cands = enrich_head(seo, tree, final)
+    structure_draft = structure.collect(tree, final)
+    body_text_raw = node_text(tree.body) if tree.body is not None else ""
     preclean(tree, rules.preclean)
     res = ensemble.extract(
         tree, rules, base_url=final, min_text_chars=settings.min_text_chars, recall=settings.recall
@@ -69,7 +74,12 @@ def extract_html(
     text = normalize_text(
         text_raw, digits=settings.digits, strip_diacritics_=settings.strip_diacritics
     )
-    lang = seo.lang_declared or settings.default_lang
+    seo = finish(seo, date_cands, text_raw, body_text_raw[:4000])
+    lang = (
+        seo.lang_declared
+        or (seo.lang_detected if seo.lang_detected in ("fa", "ar", "en") else None)
+        or settings.default_lang
+    )
     words = word_count(text)
     chars = char_count(text)
 
@@ -94,6 +104,7 @@ def extract_html(
             low_confidence=res.low_confidence or chars < settings.min_text_chars,
             extractors=res.extractors,
         ),
+        structure=structure.finalize(structure_draft, [b.node for b in res.raw_blocks]),
         content_hash=content_hash(text),
         raw_html_ref=raw_html_ref,
     )
