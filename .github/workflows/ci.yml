@@ -18,7 +18,7 @@ jobs:
         with:
           enable-cache: true
       - run: uv python install 3.12
-      - run: uv sync --extra bench --group dev
+      - run: uv sync --extra bench --extra export --extra ml --group dev
       - run: uv run ruff check .
       - run: uv run ruff format --check src tests bench
       - run: uv run pytest -q

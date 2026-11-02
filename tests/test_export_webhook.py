@@ -2,6 +2,7 @@ import json
 from pathlib import Path
 
 import httpx
+import pytest
 from pytest_httpserver import HTTPServer
 from typer.testing import CliRunner
 from werkzeug.wrappers import Request, Response
@@ -41,7 +42,7 @@ def test_issues_rules() -> None:
 
 
 def test_export_xlsx(tmp_path: Path) -> None:
-    from openpyxl import load_workbook
+    load_workbook = pytest.importorskip("openpyxl").load_workbook
 
     run_dir = _run_dir(tmp_path)
     out = tmp_path / "seo.xlsx"
@@ -60,6 +61,7 @@ def test_export_xlsx(tmp_path: Path) -> None:
 
 
 def test_cli_export(tmp_path: Path) -> None:
+    pytest.importorskip("openpyxl")
     run_dir = _run_dir(tmp_path)
     result = runner.invoke(
         app, ["export", str(run_dir), "--xlsx", str(tmp_path / "x.xlsx"), "--no-chunks"]
