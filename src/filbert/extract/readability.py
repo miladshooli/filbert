@@ -14,6 +14,7 @@ from dataclasses import dataclass, field
 
 from filbert.extract.blocks import (
     OUTPUT_BLOCK_TAGS,
+    PageContext,
     RawBlock,
     collect_blocks,
     emit_block,
@@ -103,7 +104,9 @@ def _is_paragraph(node: Node) -> bool:
     return tag == "div" and not has_block_child(node)
 
 
-def score_candidates(body: Node, rules: ReadabilityRules) -> dict[int, Candidate]:
+def score_candidates(
+    body: Node, rules: ReadabilityRules, ctx: PageContext | None = None
+) -> dict[int, Candidate]:
     """یک پیمایش روی body؛ کاندیدها را با کلید `mem_id` برمی‌گرداند."""
     cands: dict[int, Candidate] = {}
     min_chars = rules.min_paragraph_chars
@@ -115,9 +118,14 @@ def score_candidates(body: Node, rules: ReadabilityRules) -> dict[int, Candidate
             cands[n.mem_id] = c
         return c
 
+    stats = ctx.stats if ctx is not None else None
     for n in body.traverse():
         if not n.is_element_node or not _is_paragraph(n):
             continue
+        if stats is not None:
+            st = stats.get(n.mem_id)
+            if st is None or st.chars < min_chars:
+                continue  # پیش‌فیلتر ارزان؛ متن فقط برای کاندیدهای واقعی خوانده می‌شود
         text = n.text(deep=True).strip()
         n_chars = len(text)
         if n_chars < min_chars:
@@ -131,9 +139,11 @@ def score_candidates(body: Node, rules: ReadabilityRules) -> dict[int, Candidate
         if grand is not None and grand.is_element_node and grand.tag != "html":
             get(grand).score += score / 2
 
+    ld = ctx.link_density if ctx is not None else link_density
+    tl = ctx.text_len if ctx is not None else inner_text_len
     for c in cands.values():
-        c.score *= 1.0 - link_density(c.node)
-        c.text_len = inner_text_len(c.node)
+        c.score *= 1.0 - ld(c.node)
+        c.text_len = tl(c.node)
     return cands
 
 
@@ -201,7 +211,10 @@ def _multi_part_level(
 
 
 def _select_content_nodes(
-    top: Candidate, cands: dict[int, Candidate], rules: ReadabilityRules
+    top: Candidate,
+    cands: dict[int, Candidate],
+    rules: ReadabilityRules,
+    ctx: PageContext | None = None,
 ) -> list[Node]:
     threshold = max(rules.sibling_threshold_min, top.score * rules.sibling_threshold_ratio)
     parent = top.node.parent
@@ -224,7 +237,7 @@ def _select_content_nodes(
                 if c is not None and c.score + bonus >= threshold:
                     chosen.append(sib)
                 elif sib.tag == "p" or (sib.tag == "div" and not has_block_child(sib)):
-                    ld = link_density(sib)
+                    ld = ctx.link_density(sib) if ctx is not None else link_density(sib)
                     txt = sib.text(deep=True).strip()
                     if (len(txt) > 80 and ld < 0.25) or (
                         len(txt) <= 80 and ld == 0 and txt.endswith((".", "۔", "!", "؟", "?"))
@@ -234,16 +247,18 @@ def _select_content_nodes(
     return chosen or [top.node]
 
 
-def extract(tree: Tree, rules: ReadabilityRules, base_url: str | None = None) -> ReadabilityResult:
+def extract(
+    tree: Tree, rules: ReadabilityRules, base_url: str | None = None, ctx: PageContext | None = None
+) -> ReadabilityResult:
     """درخت (پس از preclean) → بلوک‌های محتوای اصلی."""
     body = tree.body
     if body is None:
         return ReadabilityResult()
-    cands = score_candidates(body, rules)
+    cands = score_candidates(body, rules, ctx)
     res = ReadabilityResult(candidates=len(cands))
     if not cands:
         # صفحه بدون پاراگراف قابل امتیاز → همه body
-        collect_blocks(body, base_url, res.blocks, source=SOURCE)
+        collect_blocks(body, base_url, res.blocks, source=SOURCE, ctx=ctx)
         res.top_xpath = xpath_of(body)
         res.text_len = len(res.text)
         return res
@@ -252,13 +267,13 @@ def extract(tree: Tree, rules: ReadabilityRules, base_url: str | None = None) ->
     if top.node.tag == "body" or top.score <= 0:
         nodes = [top.node]
     else:
-        nodes = _select_content_nodes(top, cands, rules)
+        nodes = _select_content_nodes(top, cands, rules, ctx)
     for n in nodes:
         if n.tag in OUTPUT_BLOCK_TAGS:
-            emit_block(n, n.tag, base_url, res.blocks, source=SOURCE)
+            emit_block(n, n.tag, base_url, res.blocks, source=SOURCE, ctx=ctx)
         else:
-            collect_blocks(n, base_url, res.blocks, source=SOURCE)
-    ensure_h1(body, res.blocks, base_url, source=SOURCE)
+            collect_blocks(n, base_url, res.blocks, source=SOURCE, ctx=ctx)
+    ensure_h1(body, res.blocks, base_url, source=SOURCE, ctx=ctx)
     res.top_xpath = xpath_of(top.node)
     res.top_score = round(top.score, 2)
     res.text_len = len(res.text)

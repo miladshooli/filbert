@@ -13,20 +13,18 @@ from __future__ import annotations
 import math
 from dataclasses import dataclass, field
 
-from filbert.extract.blocks import RawBlock, collect_blocks, ensure_h1, join_text
+from filbert.extract.blocks import (
+    PageContext,
+    RawBlock,
+    collect_blocks,
+    collect_from_candidates,
+    ensure_h1,
+    join_text,
+)
 from filbert.extract.domtext import Node, Tree, xpath_of
+from filbert.extract.stats import NodeStats, compute_stats  # noqa: F401 — re-export
 
 SOURCE = "cetd"
-
-
-@dataclass(slots=True)
-class NodeStats:
-    chars: int = 0
-    tags: int = 0
-    link_chars: int = 0
-    link_tags: int = 0
-    ctd: float = 0.0
-    density_sum: float = 0.0
 
 
 @dataclass(slots=True)
@@ -39,39 +37,6 @@ class CetdResult:
     @property
     def text(self) -> str:
         return join_text(self.blocks)
-
-
-def compute_stats(body: Node) -> dict[int, NodeStats]:
-    """C/T/LC/LT برای هر عنصر در یک پیمایش معکوس پیش‌ترتیب (نوادگان قبل از اجداد)."""
-    nodes = list(body.traverse(include_text=True))
-    stats: dict[int, NodeStats] = {}
-    in_link: dict[int, bool] = {body.mem_id: body.tag == "a"}
-    for n in nodes[1:]:
-        p = n.parent
-        in_link[n.mem_id] = (p is not None and in_link.get(p.mem_id, False)) or n.tag == "a"
-    for n in reversed(nodes):
-        p = n.parent
-        if n.is_text_node:
-            if p is None:
-                continue
-            c = len((n.text_content or "").strip())
-            if c == 0:
-                continue
-            ps = stats.setdefault(p.mem_id, NodeStats())
-            ps.chars += c
-            if in_link.get(n.mem_id, False):
-                ps.link_chars += c
-            continue
-        if not n.is_element_node:
-            continue
-        s = stats.setdefault(n.mem_id, NodeStats())
-        if p is not None and n.mem_id != body.mem_id:
-            ps = stats.setdefault(p.mem_id, NodeStats())
-            ps.chars += s.chars
-            ps.link_chars += s.link_chars
-            ps.tags += s.tags + 1
-            ps.link_tags += s.link_tags + (1 if n.tag == "a" else 0)
-    return stats
 
 
 def _ctd(s: NodeStats, lc_body: int, c_body: int) -> float:
@@ -168,11 +133,13 @@ def mark_content(body: Node, stats: dict[int, NodeStats], threshold: float) -> s
     return marked
 
 
-def extract(tree: Tree, base_url: str | None = None) -> CetdResult:
+def extract(tree: Tree, base_url: str | None = None, ctx: PageContext | None = None) -> CetdResult:
     body = tree.body
     if body is None:
         return CetdResult()
-    stats = compute_stats(body)
+    stats = ctx.stats if (ctx is not None and ctx.stats is not None) else compute_stats(body)
+    if ctx is not None and ctx.stats is None:
+        ctx.stats = stats
     if stats.get(body.mem_id, NodeStats()).chars == 0:
         return CetdResult()
     score(body, stats)
@@ -191,6 +158,9 @@ def extract(tree: Tree, base_url: str | None = None) -> CetdResult:
             cur = cur.parent
         return False
 
-    collect_blocks(body, base_url, res.blocks, source=SOURCE, predicate=is_marked)
-    ensure_h1(body, res.blocks, base_url, source=SOURCE)
+    if ctx is not None:
+        collect_from_candidates(ctx, body, base_url, res.blocks, source=SOURCE, predicate=is_marked)
+    else:
+        collect_blocks(body, base_url, res.blocks, source=SOURCE, predicate=is_marked)
+    ensure_h1(body, res.blocks, base_url, source=SOURCE, ctx=ctx)
     return res

@@ -12,6 +12,7 @@ from dataclasses import dataclass, field
 
 from filbert.extract.blocks import (
     HEADING_TAGS,
+    PageContext,
     RawBlock,
     emit_block,
     ensure_h1,
@@ -116,7 +117,11 @@ def _cid(node: Node, cache: dict[int, str] | None) -> str:
 
 
 def _repeat_item(
-    node: Node, levels: int = 5, min_group_chars: int = 300, cids: dict[int, str] | None = None
+    node: Node,
+    levels: int = 5,
+    min_group_chars: int = 300,
+    cids: dict[int, str] | None = None,
+    ctx: PageContext | None = None,
 ) -> Node | None:
     """آیتمِ گروه تکرارشونده‌ای که این بلوک داخل آن است (جدی تا ۵ سطح با ≥۳ خواهر/برادر هم‌class،
     متن مجموع ≥ min_group_chars و چگالی لینک گروه < ۰.۵)؛ وگرنه None."""
@@ -129,8 +134,10 @@ def _repeat_item(
         if cid and parent is not None:
             same = [c for c in _element_children(parent) if _cid(c, cids) == cid]
             if len(same) >= 3:
-                total = sum(inner_text_len(c) for c in same)
-                if total >= min_group_chars and link_density(parent) < 0.5:
+                tl = ctx.text_len if ctx is not None else inner_text_len
+                ld = ctx.link_density if ctx is not None else link_density
+                total = sum(tl(c) for c in same)
+                if total >= min_group_chars and ld(parent) < 0.5:
                     return cur
                 return None
         cur = parent
@@ -138,14 +145,17 @@ def _repeat_item(
 
 
 def repeat_main_flags(
-    cands: list[tuple[Node, str]], texts: list[str], cids: dict[int, str] | None = None
+    cands: list[tuple[Node, str]],
+    texts: list[str],
+    cids: dict[int, str] | None = None,
+    ctx: PageContext | None = None,
 ) -> list[float]:
     """۱ برای بلوکی که در یک آیتم تکرارشونده، بزرگ‌ترین بلوک متنی آیتم است (یا ≥۵۰٪ آن)؛
     خطوط متای کوتاه (تاریخ، تعداد پست) ۰ می‌گیرند."""
     items: list[int | None] = []
     best: dict[int, int] = {}
     for (node, _), text in zip(cands, texts, strict=True):
-        item = _repeat_item(node, cids=cids)
+        item = _repeat_item(node, cids=cids, ctx=ctx)
         mid = item.mem_id if item is not None else None
         items.append(mid)
         if mid is not None:
@@ -186,7 +196,10 @@ def _same_tag_siblings(node: Node) -> int:
 
 
 def compute_features(
-    cands: list[tuple[Node, str]], texts: list[str], rules: ReadabilityRules
+    cands: list[tuple[Node, str]],
+    texts: list[str],
+    rules: ReadabilityRules,
+    ctx: PageContext | None = None,
 ) -> list[Features]:
     if not cands:
         return []
@@ -194,7 +207,8 @@ def compute_features(
     largest = max(range(len(cands)), key=lambda i: lengths[i])
     span = max(1, len(cands) - 1)
     cids: dict[int, str] = {}
-    repeat_flags = repeat_main_flags(cands, texts, cids)
+    repeat_flags = repeat_main_flags(cands, texts, cids, ctx)
+    ld = ctx.link_density if ctx is not None else link_density
     feats: list[Features] = []
     for i, ((node, tag), text) in enumerate(zip(cands, texts, strict=True)):
         words = text.split()
@@ -204,7 +218,7 @@ def compute_features(
         feats.append(
             Features(
                 length=min(1.0, len(text) / 300),
-                link_ratio=link_density(node),
+                link_ratio=ld(node),
                 punct=float(min(3, len(_SENTENCE_PUNCT_RE.findall(text)))),
                 class_pos=pos,
                 class_neg=neg,
@@ -234,14 +248,15 @@ def extract(
     rules: ReadabilityRules,
     base_url: str | None = None,
     weights: dict[str, float] | None = None,
+    ctx: PageContext | None = None,
 ) -> DomResult:
     body = tree.body
     if body is None:
         return DomResult()
     w = weights or DEFAULT_WEIGHTS
-    cands = iter_candidate_blocks(body)
-    texts = [node_text(n) for n, _ in cands]
-    feats = compute_features(cands, texts, rules)
+    cands = ctx.candidates(body) if ctx is not None else iter_candidate_blocks(body)
+    texts = [(ctx.node_text(n) if ctx is not None else node_text(n)) for n, _ in cands]
+    feats = compute_features(cands, texts, rules, ctx)
     res = DomResult(scored=len(cands))
     if not cands:
         return res
@@ -255,6 +270,6 @@ def extract(
     for (node, tag), f in zip(cands, feats, strict=True):
         prob = 1.0 / (1.0 + math.exp(-linear_score(f, w)))
         if prob >= 0.5:
-            emit_block(node, tag, base_url, res.blocks, source=SOURCE)
-    ensure_h1(body, res.blocks, base_url, source=SOURCE)
+            emit_block(node, tag, base_url, res.blocks, source=SOURCE, ctx=ctx)
+    ensure_h1(body, res.blocks, base_url, source=SOURCE, ctx=ctx)
     return res

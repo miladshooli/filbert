@@ -12,7 +12,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 
 from filbert.extract import cetd, domscore, readability
-from filbert.extract.blocks import RawBlock, doc_order, join_text
+from filbert.extract.blocks import PageContext, RawBlock, doc_order, join_text
 from filbert.extract.domtext import Node, Tree
 from filbert.extract.rules import Rules
 from filbert.models import Block
@@ -47,10 +47,11 @@ class EnsembleResult:
 
 
 def run_extractors(tree: Tree, rules: Rules, base_url: str | None) -> dict[str, list[RawBlock]]:
+    ctx = PageContext.build(tree.body)  # آمار نود و کش بلوک‌ها یک بار برای هر سه
     return {
-        readability.SOURCE: readability.extract(tree, rules.readability, base_url).blocks,
-        cetd.SOURCE: cetd.extract(tree, base_url).blocks,
-        domscore.SOURCE: domscore.extract(tree, rules.readability, base_url).blocks,
+        readability.SOURCE: readability.extract(tree, rules.readability, base_url, ctx=ctx).blocks,
+        cetd.SOURCE: cetd.extract(tree, base_url, ctx=ctx).blocks,
+        domscore.SOURCE: domscore.extract(tree, rules.readability, base_url, ctx=ctx).blocks,
     }
 
 

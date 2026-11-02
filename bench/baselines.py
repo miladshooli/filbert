@@ -7,6 +7,7 @@ from collections.abc import Callable
 
 from filbert.config import Settings
 from filbert.extract import cetd, domscore, ensemble, readability
+from filbert.extract.blocks import PageContext
 from filbert.extract.domtext import parse
 from filbert.extract.preclean import preclean
 from filbert.extract.rules import load_rules
@@ -23,15 +24,18 @@ def _prepared(html: str):
 
 
 def fb_readability(html: str, url: str) -> str:
-    return readability.extract(_prepared(html), RULES.readability, url).text
+    tree = _prepared(html)
+    return readability.extract(tree, RULES.readability, url, ctx=PageContext.build(tree.body)).text
 
 
 def fb_cetd(html: str, url: str) -> str:
-    return cetd.extract(_prepared(html), url).text
+    tree = _prepared(html)
+    return cetd.extract(tree, url, ctx=PageContext.build(tree.body)).text
 
 
 def fb_dom(html: str, url: str) -> str:
-    return domscore.extract(_prepared(html), RULES.readability, url).text
+    tree = _prepared(html)
+    return domscore.extract(tree, RULES.readability, url, ctx=PageContext.build(tree.body)).text
 
 
 def fb_ensemble(html: str, url: str) -> str:
