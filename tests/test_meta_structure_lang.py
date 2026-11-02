@@ -38,6 +38,8 @@ def test_author_chain() -> None:
 def test_clean_author() -> None:
     assert clean_author("نوشته شده توسط علی") == "علی"
     assert clean_author("توسط: مریم") == "مریم"
+    assert clean_author("نوشته‌شده توسط علی در ۱۲ مهر ۱۴۰۵") == "علی"
+    assert clean_author("سارا احمدی | ۱۰ آبان ۱۴۰۵") == "سارا احمدی"
     assert clean_author("x" * 100) is None
     assert clean_author("https://a.ir/u") is None
 
@@ -46,14 +48,12 @@ def test_structure_collect_and_in_main() -> None:
     t = parse(NEWS)
     page = "https://news.example.ir/economy/123456/"
     draft = collect(t, page)
-    assert any(h.level == 1 and h.text.startswith("افزایش قیمت") for _, h in draft.headings)
-    urls = {ln.url for _, ln in draft.links}
+    assert any(lvl == 1 and text.startswith("افزایش قیمت") for _, lvl, text in draft.headings)
+    urls = {ln[1] for ln in draft.links}
     assert "https://news.example.ir/economy/" in urls and "https://t.me/share?url=x" in urls
-    assert any(not ln.internal for _, ln in draft.links) and any(
-        ln.internal for _, ln in draft.links
-    )
-    assert not any("javascript" in ln.url for _, ln in draft.links)
-    assert [im.src for _, im in draft.images] == ["https://news.example.ir/uploads/btc-chart.png"]
+    assert any(not ln[4] for ln in draft.links) and any(ln[4] for ln in draft.links)
+    assert not any("javascript" in u for u in urls)
+    assert [im[1] for im in draft.images] == ["https://news.example.ir/uploads/btc-chart.png"]
     # in_main: فقط article به‌عنوان محتوای اصلی
     art = t.css_first("article")
     st = finalize(draft, [art])
@@ -71,7 +71,7 @@ def test_structure_lazy_images_and_sizes() -> None:
         '<html><body><img data-src="/a.png" width="300px" height="x"><img src="data:image/png;base64,xx"><img src="/b.png" alt=" ب "></body></html>'
     )
     d = collect(t, "https://a.ir/")
-    assert [(i.src, i.width, i.height, i.alt) for _, i in d.images] == [
+    assert [(src, w, h, alt) for _, src, alt, w, h in d.images] == [
         ("https://a.ir/a.png", 300, None, None),
         ("https://a.ir/b.png", None, None, "ب"),
     ]

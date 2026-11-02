@@ -36,6 +36,15 @@ def run_dataset(ds: Dataset, extractors: dict[str, baselines.Extractor], repeat:
     settings = Settings(_env_file=None)
     pages = list(ds.labeled())
     per_page: list[dict] = []
+    coverage: dict[str, int] = {
+        "n": 0,
+        "author": 0,
+        "published_at": 0,
+        "json_ld": 0,
+        "headings": 0,
+        "links": 0,
+        "images_missing_alt": 0,
+    }
     for page in pages:
         html = ds.html(page.id)
         gold = ds.gold_text(page.id) or ""
@@ -57,8 +66,18 @@ def run_dataset(ds: Dataset, extractors: dict[str, baselines.Extractor], repeat:
             aggs[name].add(page.type, r, best_ms)
             row[name] = round(r.f1, 4)
         gold_meta = ds.gold_meta(page.id)
+        rec = extract_html(html, page.url, settings=settings)
+        coverage["n"] += 1
+        coverage["author"] += rec.seo.author is not None
+        coverage["published_at"] += rec.seo.published_at is not None
+        coverage["json_ld"] += bool(rec.seo.json_ld_types)
+        coverage["lang_" + (rec.seo.lang_detected or "none")] = (
+            coverage.get("lang_" + (rec.seo.lang_detected or "none"), 0) + 1
+        )
+        coverage["headings"] += len(rec.structure.headings)
+        coverage["links"] += len(rec.structure.links)
+        coverage["images_missing_alt"] += rec.structure.images_summary.missing_alt
         if gold_meta:
-            rec = extract_html(html, page.url, settings=settings)
             pred = {
                 "title": rec.seo.title,
                 "description": rec.seo.description,
@@ -76,6 +95,8 @@ def run_dataset(ds: Dataset, extractors: dict[str, baselines.Extractor], repeat:
         "label_summary": ds.summary(),
         "extractors": {n: a.summary() for n, a in aggs.items()},
         "meta": meta_agg.summary()["meta"],
+        "meta_n": {k: len(v) for k, v in meta_agg.meta_hits.items()},
+        "coverage": coverage,
         "pages": per_page,
     }
 

@@ -64,7 +64,6 @@ def extract_html(
     seo = extract_head(tree, final, response_headers)  # پیش از preclean: همان چیزی که گوگل می‌بیند
     seo, date_cands = enrich_head(seo, tree, final)
     structure_draft = structure.collect(tree, final)
-    body_text_raw = node_text(tree.body) if tree.body is not None else ""
     preclean(tree, rules.preclean)
     res = ensemble.extract(
         tree, rules, base_url=final, min_text_chars=settings.min_text_chars, recall=settings.recall
@@ -74,7 +73,10 @@ def extract_html(
     text = normalize_text(
         text_raw, digits=settings.digits, strip_diacritics_=settings.strip_diacritics
     )
-    seo = finish(seo, date_cands, text_raw, body_text_raw[:4000])
+    fallback_text = (
+        None if len(text_raw) >= 200 or tree.body is None else node_text(tree.body)[:4000]
+    )
+    seo = finish(seo, date_cands, text_raw, fallback_text)
     lang = (
         seo.lang_declared
         or (seo.lang_detected if seo.lang_detected in ("fa", "ar", "en") else None)

@@ -21,9 +21,11 @@ _INT_RE = re.compile(r"^\s*(\d{1,5})")
 
 @dataclass(slots=True)
 class StructureDraft:
-    headings: list[tuple[int, Heading]] = field(default_factory=list)
-    links: list[tuple[int, Link]] = field(default_factory=list)
-    images: list[tuple[int, Image]] = field(default_factory=list)
+    """نسخه سبک (tuple) تا مدل‌های pydantic فقط یک بار در `finalize` ساخته شوند."""
+
+    headings: list[tuple[int, int, str]] = field(default_factory=list)  # mem_id, level, text
+    links: list[tuple[int, str, str | None, str | None, bool, bool]] = field(default_factory=list)
+    images: list[tuple[int, str, str | None, int | None, int | None]] = field(default_factory=list)
 
 
 def _int_attr(v: str | None) -> int | None:
@@ -47,7 +49,7 @@ def collect(
         if tag in HEADING_TAGS:
             text = " ".join(node_text(n).split())
             if text:
-                draft.headings.append((n.mem_id, Heading(level=int(tag[1]), text=text)))
+                draft.headings.append((n.mem_id, int(tag[1]), text))
         elif tag == "a" and len(draft.links) < max_links:
             href = (n.attributes.get("href") or "").strip()
             if not href or href.lower().startswith(_SKIP_HREF):
@@ -57,22 +59,13 @@ def collect(
                 continue
             rel = (n.attributes.get("rel") or "").strip() or None
             tokens = {t.lower() for t in rel.split()} if rel else set()
-            anchor = " ".join(node_text(n).split()) or None
+            anchor = " ".join(n.text(deep=True).split()) or None
             if anchor is None:
                 img = n.css_first("img")
                 if img is not None and img.attributes.get("alt"):
                     anchor = " ".join(img.attributes["alt"].split()) or None
             draft.links.append(
-                (
-                    n.mem_id,
-                    Link(
-                        url=url,
-                        anchor=anchor,
-                        rel=rel,
-                        internal=is_internal(url, page_url),
-                        nofollow="nofollow" in tokens,
-                    ),
-                )
+                (n.mem_id, url, anchor, rel, is_internal(url, page_url), "nofollow" in tokens)
             )
         elif tag == "img" and len(draft.images) < max_images:
             src = img_src(n.attributes, page_url)
@@ -83,12 +76,10 @@ def collect(
             draft.images.append(
                 (
                     n.mem_id,
-                    Image(
-                        src=src,
-                        alt=(" ".join(alt.split()) if alt is not None else None),
-                        width=_int_attr(a.get("width")),
-                        height=_int_attr(a.get("height")),
-                    ),
+                    src,
+                    (" ".join(alt.split()) if alt is not None else None),
+                    _int_attr(a.get("width")),
+                    _int_attr(a.get("height")),
                 )
             )
     return draft
@@ -106,9 +97,15 @@ def main_ids(main_nodes: list[Node]) -> set[int]:
 
 def finalize(draft: StructureDraft, main_nodes: list[Node]) -> Structure:
     ids = main_ids(main_nodes)
-    headings = [h.model_copy(update={"in_main": mid in ids}) for mid, h in draft.headings]
-    links = [ln.model_copy(update={"in_main": mid in ids}) for mid, ln in draft.links]
-    images = [im.model_copy(update={"in_main": mid in ids}) for mid, im in draft.images]
+    headings = [Heading(level=lvl, text=t, in_main=mid in ids) for mid, lvl, t in draft.headings]
+    links = [
+        Link(url=u, anchor=a, rel=r, internal=i, nofollow=nf, in_main=mid in ids)
+        for mid, u, a, r, i, nf in draft.links
+    ]
+    images = [
+        Image(src=src, alt=alt, width=w, height=h, in_main=mid in ids)
+        for mid, src, alt, w, h in draft.images
+    ]
     return Structure(
         headings=headings,
         links=links,

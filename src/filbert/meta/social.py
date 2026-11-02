@@ -12,6 +12,7 @@ from urllib.parse import urljoin
 
 from filbert.extract.domtext import Tree, class_id, node_text
 from filbert.meta import jsonld
+from filbert.meta.dates import parse_text
 from filbert.meta.head import collect_meta
 
 _URL_KEYS = {
@@ -49,11 +50,18 @@ def extract_social(tree: Tree, base_url: str) -> tuple[dict[str, str], dict[str,
     return og, tw
 
 
+_AUTHOR_SPLIT_RE = re.compile(r"\s*(?:\||•|·|/|،|,|\s-\s|\s–\s|\sدر\s|\sat\s|\son\s)\s*")
+
+
 def clean_author(raw: str | None) -> str | None:
     if not raw:
         return None
     s = " ".join(raw.split())
-    s = _AUTHOR_PREFIX_RE.sub("", s).strip(" :-–|،,")
+    s = _AUTHOR_PREFIX_RE.sub("", s)
+    d = parse_text(s)
+    if d:
+        s = s[: s.find(d.raw)] if d.raw in s else s  # تاریخ کنار نام نویسنده
+    s = _AUTHOR_SPLIT_RE.split(s, maxsplit=1)[0].strip(" :-–|،,")
     if not s or len(s) > _MAX_AUTHOR_LEN or s.lower().startswith(("http", "www.")):
         return None
     return s

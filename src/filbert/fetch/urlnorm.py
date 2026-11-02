@@ -62,9 +62,20 @@ def is_tracking_param(name: str) -> bool:
     return n in TRACKING_PARAMS or n.startswith(TRACKING_PREFIXES)
 
 
+_SIMPLE_URL_RE = re.compile(r"^https?://[a-z0-9.-]+/[A-Za-z0-9._~/%-]*$")
+
+
+@lru_cache(maxsize=16384)
 def normalize_url(url: str, base: str | None = None) -> str:
-    """URL را نرمال می‌کند؛ اگر `base` داده شود، لینک نسبی اول مطلق می‌شود."""
+    """URL را نرمال می‌کند؛ اگر `base` داده شود، لینک نسبی اول مطلق می‌شود. (با کش؛ لینک‌های تکراری ناوبری)"""
     url = url.strip()
+    if (
+        base is None
+        and _SIMPLE_URL_RE.match(url)
+        and not _INDEX_RE.search(url)
+        and "%" not in url.lower().replace("%2f", "")
+    ):
+        return url  # مسیر سریع: بدون query/fragment/پورت/حروف بزرگ در host/کاراکتر خاص
     if base:
         url = urljoin(base, url)
     parts = urlsplit(url)
