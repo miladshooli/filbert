@@ -299,6 +299,63 @@ def _run(
         raise typer.Exit(code=1)
 
 
+@app.command()
+def chunk(
+    inputs: Annotated[list[str], typer.Argument(help="URL یا فایل HTML")],
+    max_words: Annotated[int, typer.Option("--max", help="بودجه هدف (کلمه)")] = 250,
+    hard_max: Annotated[int, typer.Option("--hard-max")] = 400,
+    overlap: Annotated[int, typer.Option("--overlap", help="هم‌پوشانی جمله‌ای")] = 1,
+    level: Annotated[int, typer.Option("--level", help="مرز سخت هدینگ تا سطح مؤثر N")] = 3,
+    unit: Annotated[str, typer.Option("--unit", help="words | chars | tiktoken")] = "words",
+    no_context: Annotated[
+        bool, typer.Option("--no-context", help="بدون پیشوند زمینه‌ای در embed_text")
+    ] = False,
+    out: Annotated[
+        Path | None, typer.Option("--out", help="فایل JSONL خروجی (پیش‌فرض: stdout خلاصه)")
+    ] = None,
+    cache_dir: Annotated[Path | None, typer.Option("--cache-dir")] = None,
+) -> None:
+    """چانک‌های embedding-آماده از صفحه (docs/CHUNKING.md)."""
+    overrides: dict[str, object] = {
+        "chunk_max_words": max_words,
+        "chunk_hard_max": hard_max,
+        "chunk_overlap_sentences": overlap,
+        "chunk_heading_level": level,
+        "chunk_unit": unit,
+        "chunk_context_prefix": not no_context,
+        "respect_robots": False,
+        "workers": 1,
+    }
+    if cache_dir is not None:
+        overrides["cache_dir"] = cache_dir
+    settings = Settings(**overrides)
+    from filbert.pipeline import fetch_and_extract
+
+    _stats, records = asyncio.run(fetch_and_extract(inputs, settings=settings))
+    lines = []
+    for rec in records:
+        for ch in rec.content.chunks:
+            lines.append(
+                orjson.dumps({"url": rec.final_url or rec.url, **ch.model_dump(mode="json")})
+            )
+    if out is not None:
+        out.write_bytes(b"\n".join(lines) + (b"\n" if lines else b""))
+        console.print(f"{len(lines)} chunks → {out}")
+        return
+    for rec in records:
+        console.print(f"[bold]{rec.final_url or rec.url}[/] — {len(rec.content.chunks)} chunks")
+        for ch in rec.content.chunks:
+            path = " › ".join(ch.heading_path) or "-"
+            console.print(
+                f"  #{ch.index:03d} {ch.word_count:4d}w [{','.join(ch.block_types)}] {path}"
+            )
+            console.print(
+                f"       {ch.text[:110].replace(chr(10), ' ')}…"
+                if len(ch.text) > 110
+                else f"       {ch.text.replace(chr(10), ' ')}"
+            )
+
+
 @app.command(context_settings={"allow_extra_args": True, "ignore_unknown_options": True})
 def bench(
     ctx: typer.Context,

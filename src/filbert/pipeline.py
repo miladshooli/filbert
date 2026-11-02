@@ -17,6 +17,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 
 from filbert import __version__
+from filbert.chunk import ChunkOptions, chunk_blocks
 from filbert.config import Settings
 from filbert.extract import ensemble
 from filbert.extract.cleanhtml import build_article
@@ -115,7 +116,23 @@ def extract_html(
         raw_html_ref=raw_html_ref,
     )
     rec.content.markdown = markdown_body(res.raw_blocks, final)
+    if settings.chunk and res.blocks:
+        rec.content.chunks = chunk_blocks(
+            res.blocks, opts=chunk_options(settings), title=seo.title_tag or seo.h1
+        )
     return rec
+
+
+def chunk_options(settings: Settings) -> ChunkOptions:
+    return ChunkOptions(
+        max_units=settings.chunk_max_words,
+        hard_max=settings.chunk_hard_max,
+        overlap_sentences=settings.chunk_overlap_sentences,
+        heading_level=settings.chunk_heading_level,
+        unit=settings.chunk_unit,
+        context_prefix=settings.chunk_context_prefix,
+        digits=settings.digits,
+    )
 
 
 def markdown_body(raw_blocks: list, base_url: str | None) -> str:

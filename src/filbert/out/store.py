@@ -66,6 +66,7 @@ class Store:
             (self.root / f).mkdir(exist_ok=True)
         self._pages = open(self.root / "pages.jsonl", "ab")  # noqa: SIM115
         self._errors = open(self.root / "errors.jsonl", "ab")  # noqa: SIM115
+        self._chunks = open(self.root / "chunks.jsonl", "ab")  # noqa: SIM115
 
     def write(self, record: PageRecord) -> dict[str, Path]:
         slug = slugify_url(record.final_url or record.url)
@@ -84,6 +85,15 @@ class Store:
             paths["md"] = p
         self._pages.write(json_writer.dumps_line(record) + b"\n")
         self._pages.flush()
+        if record.content.chunks:
+            base = {
+                "url": record.final_url or record.url,
+                "title": record.seo.title,
+                "lang": record.seo.lang_detected or record.seo.lang_declared,
+            }
+            for ch in record.content.chunks:
+                self._chunks.write(orjson.dumps({**base, **ch.model_dump(mode="json")}) + b"\n")
+            self._chunks.flush()
         return paths
 
     def write_error(self, url: str, reason: str, status: int | None = None) -> None:
@@ -99,6 +109,6 @@ class Store:
         return p
 
     def close(self) -> None:
-        for fh in (self._pages, self._errors):
+        for fh in (self._pages, self._errors, self._chunks):
             if not fh.closed:
                 fh.close()

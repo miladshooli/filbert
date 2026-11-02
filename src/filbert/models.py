@@ -87,12 +87,29 @@ class Block(_Base):
     votes: int = 1
 
 
+class Chunk(_Base):
+    id: str
+    index: int
+    heading_path: list[str] = Field(default_factory=list)
+    text: str
+    text_raw: str
+    embed_text: str
+    word_count: int
+    sentence_count: int = 0
+    block_types: list[str] = Field(default_factory=list)
+    xpath_start: str | None = None
+    xpath_end: str | None = None
+    position: float = 0.0
+    overlap_words: int = 0
+
+
 class Content(_Base):
     text: str | None = None
     text_raw: str | None = None
     html: str | None = None
     markdown: str | None = None
     blocks: list[Block] = Field(default_factory=list)
+    chunks: list[Chunk] = Field(default_factory=list)
     word_count: int | None = None
     char_count: int | None = None
     reading_time_min: int | None = None

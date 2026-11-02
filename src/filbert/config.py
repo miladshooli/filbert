@@ -53,3 +53,12 @@ class Settings(BaseSettings):
     default_lang: str = "fa"
     digits: str = Field(default="fa", pattern="^(fa|en)$")
     strip_diacritics: bool = False
+
+    # چانکینگ (docs/CHUNKING.md)
+    chunk: bool = True
+    chunk_max_words: int = 250
+    chunk_hard_max: int = 400
+    chunk_overlap_sentences: int = 1
+    chunk_heading_level: int = 3
+    chunk_unit: str = Field(default="words", pattern="^(words|chars|tiktoken)$")
+    chunk_context_prefix: bool = True
