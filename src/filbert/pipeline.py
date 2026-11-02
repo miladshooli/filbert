@@ -19,6 +19,7 @@ from filbert.config import Settings
 from filbert.extract import ensemble
 from filbert.extract.cleanhtml import build_article
 from filbert.extract.domtext import node_text, parse
+from filbert.extract.markdown import block_to_markdown
 from filbert.extract.preclean import preclean
 from filbert.extract.rules import load_rules
 from filbert.fa.normalize import normalize_text
@@ -31,7 +32,6 @@ from filbert.meta.enrich import enrich_head, finish
 from filbert.meta.head import extract_head
 from filbert.models import Content, HttpInfo, PageRecord, RunStats
 from filbert.out.common import direction_for
-from filbert.out.md_writer import render_body
 from filbert.out.store import FORMATS, Store
 
 log = logging.getLogger(__name__)
@@ -110,8 +110,13 @@ def extract_html(
         content_hash=content_hash(text),
         raw_html_ref=raw_html_ref,
     )
-    rec.content.markdown = render_body(rec)
+    rec.content.markdown = markdown_body(res.raw_blocks, final)
     return rec
+
+
+def markdown_body(raw_blocks: list, base_url: str | None) -> str:
+    parts = [block_to_markdown(b.node, b.type, base_url) for b in raw_blocks]
+    return "\n\n".join(p for p in parts if p).strip() + "\n"
 
 
 def extract_file(

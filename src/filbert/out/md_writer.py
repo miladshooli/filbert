@@ -52,4 +52,7 @@ def render_body(record: PageRecord) -> str:
 
 
 def render(record: PageRecord) -> str:
-    return front_matter(record) + "\n" + render_body(record)
+    body = record.content.markdown or render_body(
+        record
+    )  # markdownify فقط fallback (رکوردهای قدیمی)
+    return front_matter(record) + "\n" + body.rstrip("\n") + "\n"
