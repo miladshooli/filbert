@@ -80,6 +80,18 @@ def test_paragraph_with_only_image_becomes_figure() -> None:
     assert blocks[1].html.startswith("<figure") and 'alt="تصویر"' in blocks[1].html
 
 
+def test_wordpress_shortcode_blocks_dropped() -> None:
+    from filbert.extract.blocks import collect_blocks
+
+    tree = parse(
+        "<html><body><article><p>[tie_list type=”starlist”]</p><ul><li>یک</li><li>دو</li></ul><p>[/tie_list]</p>"
+        '<p>[caption id="x" align="left"]</p><p>متن واقعی [با کروشه] داخلش.</p></article></body></html>'
+    )
+    blocks = []
+    collect_blocks(tree.body, None, blocks, source="t")
+    assert [b.type for b in blocks] == ["ul", "p"] and blocks[1].text.startswith("متن واقعی")
+
+
 def test_xpath() -> None:
     t = parse("<html><body><div><p>a</p><p>b</p></div><div><p>c</p></div></body></html>")
     ps = t.css("p")

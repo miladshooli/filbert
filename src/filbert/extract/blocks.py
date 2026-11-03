@@ -6,6 +6,7 @@
 from __future__ import annotations
 
 import hashlib
+import re
 from collections.abc import Callable
 from dataclasses import dataclass, field
 
@@ -26,6 +27,8 @@ OUTPUT_BLOCK_TAGS: frozenset[str] = frozenset(
 )
 HEADING_TAGS: frozenset[str] = frozenset({"h1", "h2", "h3", "h4", "h5", "h6"})
 _SKIP_TAGS: frozenset[str] = frozenset({"br", "hr", "a"})
+# shortcode وردپرسیِ رندرنشده که به‌تنهایی یک بلوک شده: [tie_list type="x"] ، [/tie_list] ، [caption id=..]
+_SHORTCODE_RE = re.compile(r"^\s*\[/?[A-Za-z_][\w-]*(?:\s[^\]]*)?\]\s*$")
 Predicate = Callable[[Node], bool]
 
 
@@ -127,6 +130,8 @@ def emit_block(
         return
     ld = ctx.link_density if ctx is not None else link_density
     text = ctx.node_text(node) if ctx is not None else node_text(node)
+    if text and _SHORTCODE_RE.match(text):
+        return
     has_img = node.tag == "img" or node.css_first("img") is not None
     if tag in ("ul", "ol", "table"):
         if ld(node) > 0.5:
