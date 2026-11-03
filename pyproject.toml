@@ -5,6 +5,21 @@ description = "Fast, accurate web main-content + SEO metadata extractor, tuned f
 readme = "README.md"
 requires-python = ">=3.12"
 license = { text = "MIT" }
+license-files = ["LICENSE"]
+authors = [{ name = "Milad Shooli" }]
+keywords = ["web-scraping", "content-extraction", "readability", "seo", "persian", "farsi", "rtl", "chunking", "rag"]
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Intended Audience :: Developers",
+  "License :: OSI Approved :: MIT License",
+  "Natural Language :: Persian",
+  "Operating System :: OS Independent",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Topic :: Internet :: WWW/HTTP :: Indexing/Search",
+  "Topic :: Text Processing :: Markup :: HTML",
+]
 dependencies = [
   "pydantic>=2.7",
   "pydantic-settings>=2.3",
@@ -20,6 +35,12 @@ dependencies = [
   "tldextract>=5.1",
   "jdatetime>=5.0",
 ]
+
+[project.urls]
+Homepage = "https://github.com/miladshooli/filbert"
+Repository = "https://github.com/miladshooli/filbert"
+Changelog = "https://github.com/miladshooli/filbert/blob/main/CHANGELOG.md"
+Issues = "https://github.com/miladshooli/filbert/issues"
 
 [project.optional-dependencies]
 render = ["playwright>=1.45"]

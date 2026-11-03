@@ -69,3 +69,15 @@ brief = LLMExtractor().extract(rec.content.markdown, SeoBrief, url=rec.url)
 - `robots.txt` رعایت می‌شود؛ `--ignore-robots` فقط برای دامنه‌های خودتان.
 - صفحات JS-رندر با `--render auto` تشخیص و رندر می‌شوند (نیاز به extras `render`).
 - ویندوز: مسیرها و نام فایل‌ها سازگارند؛ `uv run filbert ...` در PowerShell همان‌طور کار می‌کند.
+
+## انتشار روی PyPI
+1. حساب در https://pypi.org (با 2FA). نام `filbert` آزاد است.
+2. در PyPI: Your projects → Publishing → **Add a new pending publisher**: owner `miladshooli`، repository `filbert`، workflow `release.yml`، environment `pypi`.
+3. در GitHub: Settings → Environments → `pypi` بسازید (اختیاری: فقط شما تأیید کنید).
+4. نسخه را در `pyproject.toml` و `src/filbert/__init__.py` بالا ببرید، CHANGELOG را کامل کنید، سپس:
+   ```
+   git tag v0.6.0 && git push origin v0.6.0
+   ```
+   workflow `release.yml` تست می‌گیرد، wheel می‌سازد و روی PyPI منتشر می‌کند. بعد از آن: `pip install filbert`.
+- انتشار دستی (بدون Actions): `uv build && uv publish --token pypi-...` (توکن API از حساب PyPI).
+- تست قبل از انتشار واقعی: همین مراحل روی https://test.pypi.org و `uv publish --publish-url https://test.pypi.org/legacy/`.
