@@ -1,7 +1,7 @@
 # filbert
 
 ابزار استخراج محتوای وب با دقت و سرعت بالا، بهینه برای فارسی.
-طراحی کامل: [docs/BLUEPRINT.md](docs/BLUEPRINT.md) · راهنمای Claude Code: [CLAUDE.md](CLAUDE.md) · تصمیم‌ها: [docs/DECISIONS.md](docs/DECISIONS.md)
+راهنمای استفاده: [docs/USAGE.md](docs/USAGE.md) · طراحی کامل: [docs/BLUEPRINT.md](docs/BLUEPRINT.md) · راهنمای Claude Code: [CLAUDE.md](CLAUDE.md) · تصمیم‌ها: [docs/DECISIONS.md](docs/DECISIONS.md)
 
 ## شروع
 ```powershell

@@ -1,6 +1,6 @@
 [project]
 name = "filbert"
-version = "0.1.0"
+version = "0.5.1"
 description = "Fast, accurate web main-content + SEO metadata extractor, tuned for Persian/RTL."
 readme = "README.md"
 requires-python = ">=3.12"
