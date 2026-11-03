@@ -1,0 +1,290 @@
+# منابع fa-biz-100: بلاگ ۵۰ کسب‌وکار ایرانی، ۲ مقاله از هر کدام. برچسب auto با selector عمومی وردپرس؛ gold از بازبینی آنلاین.
+sources:
+  - site: divar
+    type: blog
+    sector: classifieds
+    count: 2
+    discover: {listing: ["https://divar.ir/blog/"], pattern: 'divar\.ir/(?:[^/?#]+/)*[^/?#]{12,}/?$', exclude: '/(category|tag|author|page|feed|wp-|search|login|signup|cart|product)/|[?#]', depth: 2}
+    gold: {include: ["article h1", "h1", "article .entry-content", ".entry-content", ".post-content", ".single-content", ".article-content", "article .content", ".post-body"], exclude: ["[class*=share]", "[class*=related]", "[class*=comment]", "[class*=tags]", "[class*=breadcrumb]", "[class*=author-box]", "[class*=toc]", "script", "style"], min_chars: 400}
+  - site: khodro45
+    type: blog
+    sector: classifieds
+    count: 2
+    discover: {listing: ["https://khodro45.com/mag/"], pattern: 'khodro45\.com/mag/[^/?#]*(?:[a-z0-9]+(?:-[a-z0-9%]+){2,}|\d{3,})[^/?#]*/?$', exclude: '/(category|tag|author|page|feed|wp-|search|login|signup|cart|product)/|[?#]', depth: 2}
+    gold: {include: ["article h1", "h1", "article .entry-content", ".entry-content", ".post-content", ".single-content", ".article-content", "article .content", ".post-body"], exclude: ["[class*=share]", "[class*=related]", "[class*=comment]", "[class*=tags]", "[class*=breadcrumb]", "[class*=author-box]", "[class*=toc]", "script", "style"], min_chars: 400}
+  - site: arvancloud
+    type: blog
+    sector: cloud
+    count: 2
+    discover: {listing: ["https://www.arvancloud.ir/blog/"], pattern: 'arvancloud\.ir/(?:[^/?#]+/)*[^/?#]{12,}/?$', exclude: '/(category|tag|author|page|feed|wp-|search|login|signup|cart|product)/|[?#]', depth: 2}
+    gold: {include: ["article h1", "h1", "article .entry-content", ".entry-content", ".post-content", ".single-content", ".article-content", "article .content", ".post-body"], exclude: ["[class*=share]", "[class*=related]", "[class*=comment]", "[class*=tags]", "[class*=breadcrumb]", "[class*=author-box]", "[class*=toc]", "script", "style"], min_chars: 400}
+  - site: liara
+    type: blog
+    sector: cloud
+    count: 2
+    discover: {listing: ["https://liara.ir/blog/"], pattern: 'liara\.ir/blog/[^/?#]*(?:[a-z0-9]+(?:-[a-z0-9%]+){2,}|\d{3,})[^/?#]*/?$', exclude: '/(category|tag|author|page|feed|wp-|search|login|signup|cart|product)/|[?#]', depth: 2}
+    gold: {include: ["article h1", "h1", "article .entry-content", ".entry-content", ".post-content", ".single-content", ".article-content", "article .content", ".post-body"], exclude: ["[class*=share]", "[class*=related]", "[class*=comment]", "[class*=tags]", "[class*=breadcrumb]", "[class*=author-box]", "[class*=toc]", "script", "style"], min_chars: 400}
+  - site: mihanwebhost
+    type: blog
+    sector: cloud
+    count: 2
+    discover: {listing: ["https://mihanwebhost.com/blog/"], pattern: 'mihanwebhost\.com/(?:[^/?#]+/)*[^/?#]{12,}/?$', exclude: '/(category|tag|author|page|feed|wp-|search|login|signup|cart|product)/|[?#]', depth: 2}
+    gold: {include: ["article h1", "h1", "article .entry-content", ".entry-content", ".post-content", ".single-content", ".article-content", "article .content", ".post-body"], exclude: ["[class*=share]", "[class*=related]", "[class*=comment]", "[class*=tags]", "[class*=breadcrumb]", "[class*=author-box]", "[class*=toc]", "script", "style"], min_chars: 400}
+  - site: parspack
+    type: blog
+    sector: cloud
+    count: 2
+    discover: {listing: ["https://parspack.com/blog/"], pattern: 'parspack\.com/(?:[^/?#]+/)*[^/?#]{12,}/?$', exclude: '/(category|tag|author|page|feed|wp-|search|login|signup|cart|product)/|[?#]', depth: 2}
+    gold: {include: ["article h1", "h1", "article .entry-content", ".entry-content", ".post-content", ".single-content", ".article-content", "article .content", ".post-body"], exclude: ["[class*=share]", "[class*=related]", "[class*=comment]", "[class*=tags]", "[class*=breadcrumb]", "[class*=author-box]", "[class*=toc]", "script", "style"], min_chars: 400}
+  - site: 7learn
+    type: blog
+    sector: edu
+    count: 2
+    discover: {listing: ["https://7learn.com/blog/"], pattern: '7learn\.com/blog/[^/?#]*(?:[a-z0-9]+(?:-[a-z0-9%]+){2,}|\d{3,})[^/?#]*/?$', exclude: '/(category|tag|author|page|feed|wp-|search|login|signup|cart|product)/|[?#]', depth: 2}
+    gold: {include: ["article h1", "h1", "article .entry-content", ".entry-content", ".post-content", ".single-content", ".article-content", "article .content", ".post-body"], exclude: ["[class*=share]", "[class*=related]", "[class*=comment]", "[class*=tags]", "[class*=breadcrumb]", "[class*=author-box]", "[class*=toc]", "script", "style"], min_chars: 400}
+  - site: faradars
+    type: blog
+    sector: edu
+    count: 2
+    discover: {listing: ["https://blog.faradars.org/"], pattern: 'blog\.faradars\.org/[^/?#]*(?:[a-z0-9]+(?:-[a-z0-9%]+){2,}|\d{3,})[^/?#]*/?$', exclude: '/(category|tag|author|page|feed|wp-|search|login|signup|cart|product)/|[?#]', depth: 2}
+    gold: {include: ["article h1", "h1", "article .entry-content", ".entry-content", ".post-content", ".single-content", ".article-content", "article .content", ".post-body"], exclude: ["[class*=share]", "[class*=related]", "[class*=comment]", "[class*=tags]", "[class*=breadcrumb]", "[class*=author-box]", "[class*=toc]", "script", "style"], min_chars: 400}
+  - site: maktabkhooneh
+    type: blog
+    sector: edu
+    count: 2
+    discover: {listing: ["https://maktabkhooneh.org/mag/"], pattern: 'maktabkhooneh\.org/mag/[^/?#]*(?:[a-z0-9]+(?:-[a-z0-9%]+){2,}|\d{3,})[^/?#]*/?$', exclude: '/(category|tag|author|page|feed|wp-|search|login|signup|cart|product)/|[?#]', depth: 2}
+    gold: {include: ["article h1", "h1", "article .entry-content", ".entry-content", ".post-content", ".single-content", ".article-content", "article .content", ".post-body"], exclude: ["[class*=share]", "[class*=related]", "[class*=comment]", "[class*=tags]", "[class*=breadcrumb]", "[class*=author-box]", "[class*=toc]", "script", "style"], min_chars: 400}
+  - site: quera
+    type: blog
+    sector: edu
+    count: 2
+    discover: {listing: ["https://quera.org/blog/"], pattern: 'quera\.org/blog/[^/?#]*(?:[a-z0-9]+(?:-[a-z0-9%]+){2,}|\d{3,})[^/?#]*/?$', exclude: '/(category|tag|author|page|feed|wp-|search|login|signup|cart|product)/|[?#]', depth: 2}
+    gold: {include: ["article h1", "h1", "article .entry-content", ".entry-content", ".post-content", ".single-content", ".article-content", "article .content", ".post-body"], exclude: ["[class*=share]", "[class*=related]", "[class*=comment]", "[class*=tags]", "[class*=breadcrumb]", "[class*=author-box]", "[class*=toc]", "script", "style"], min_chars: 400}
+  - site: roocket
+    type: blog
+    sector: edu
+    count: 2
+    discover: {listing: ["https://roocket.ir/articles"], pattern: 'roocket\.ir/articles/[^/?#]*(?:[a-z0-9]+(?:-[a-z0-9%]+){2,}|\d{3,})[^/?#]*/?$', exclude: '/(category|tag|author|page|feed|wp-|search|login|signup|cart|product)/|[?#]', depth: 2}
+    gold: {include: ["article h1", "h1", "article .entry-content", ".entry-content", ".post-content", ".single-content", ".article-content", "article .content", ".post-body"], exclude: ["[class*=share]", "[class*=related]", "[class*=comment]", "[class*=tags]", "[class*=breadcrumb]", "[class*=author-box]", "[class*=toc]", "script", "style"], min_chars: 400}
+  - site: sabzlearn
+    type: blog
+    sector: edu
+    count: 2
+    discover: {listing: ["https://sabzlearn.ir/blog/"], pattern: 'sabzlearn\.ir/blog/[^/?#]*(?:[a-z0-9]+(?:-[a-z0-9%]+){2,}|\d{3,})[^/?#]*/?$', exclude: '/(category|tag|author|page|feed|wp-|search|login|signup|cart|product)/|[?#]', depth: 2}
+    gold: {include: ["article h1", "h1", "article .entry-content", ".entry-content", ".post-content", ".single-content", ".article-content", "article .content", ".post-body"], exclude: ["[class*=share]", "[class*=related]", "[class*=comment]", "[class*=tags]", "[class*=breadcrumb]", "[class*=author-box]", "[class*=toc]", "script", "style"], min_chars: 400}
+  - site: digipay
+    type: blog
+    sector: fintech
+    count: 2
+    discover: {listing: ["https://www.mydigipay.com/blog/"], pattern: 'mydigipay\.com/(?:[^/?#]+/)*[^/?#]{12,}/?$', exclude: '/(category|tag|author|page|feed|wp-|search|login|signup|cart|product)/|[?#]', depth: 2}
+    gold: {include: ["article h1", "h1", "article .entry-content", ".entry-content", ".post-content", ".single-content", ".article-content", "article .content", ".post-body"], exclude: ["[class*=share]", "[class*=related]", "[class*=comment]", "[class*=tags]", "[class*=breadcrumb]", "[class*=author-box]", "[class*=toc]", "script", "style"], min_chars: 400}
+  - site: nobitex
+    type: blog
+    sector: fintech
+    count: 2
+    discover: {listing: ["https://nobitex.ir/mag/"], pattern: 'nobitex\.ir/mag/[^/?#]*(?:[a-z0-9]+(?:-[a-z0-9%]+){2,}|\d{3,})[^/?#]*/?$', exclude: '/(category|tag|author|page|feed|wp-|search|login|signup|cart|product)/|[?#]', depth: 2}
+    gold: {include: ["article h1", "h1", "article .entry-content", ".entry-content", ".post-content", ".single-content", ".article-content", "article .content", ".post-body"], exclude: ["[class*=share]", "[class*=related]", "[class*=comment]", "[class*=tags]", "[class*=breadcrumb]", "[class*=author-box]", "[class*=toc]", "script", "style"], min_chars: 400}
+  - site: payping
+    type: blog
+    sector: fintech
+    count: 2
+    discover: {listing: ["https://payping.ir/blog/"], pattern: 'payping\.ir/blog/[^/?#]*(?:[a-z0-9]+(?:-[a-z0-9%]+){2,}|\d{3,})[^/?#]*/?$', exclude: '/(category|tag|author|page|feed|wp-|search|login|signup|cart|product)/|[?#]', depth: 2}
+    gold: {include: ["article h1", "h1", "article .entry-content", ".entry-content", ".post-content", ".single-content", ".article-content", "article .content", ".post-body"], exclude: ["[class*=share]", "[class*=related]", "[class*=comment]", "[class*=tags]", "[class*=breadcrumb]", "[class*=author-box]", "[class*=toc]", "script", "style"], min_chars: 400}
+  - site: ramzinex
+    type: blog
+    sector: fintech
+    count: 2
+    discover: {listing: ["https://ramzinex.com/blog/"], pattern: 'ramzinex\.com/(?:[^/?#]+/)*[^/?#]{12,}/?$', exclude: '/(category|tag|author|page|feed|wp-|search|login|signup|cart|product)/|[?#]', depth: 2}
+    gold: {include: ["article h1", "h1", "article .entry-content", ".entry-content", ".post-content", ".single-content", ".article-content", "article .content", ".post-body"], exclude: ["[class*=share]", "[class*=related]", "[class*=comment]", "[class*=tags]", "[class*=breadcrumb]", "[class*=author-box]", "[class*=toc]", "script", "style"], min_chars: 400}
+  - site: tabdeal
+    type: blog
+    sector: fintech
+    count: 2
+    discover: {listing: ["https://tabdeal.org/academy/"], pattern: 'tabdeal\.org/academy/[^/?#]*(?:[a-z0-9]+(?:-[a-z0-9%]+){2,}|\d{3,})[^/?#]*/?$', exclude: '/(category|tag|author|page|feed|wp-|search|login|signup|cart|product)/|[?#]', depth: 2}
+    gold: {include: ["article h1", "h1", "article .entry-content", ".entry-content", ".post-content", ".single-content", ".article-content", "article .content", ".post-body"], exclude: ["[class*=share]", "[class*=related]", "[class*=comment]", "[class*=tags]", "[class*=breadcrumb]", "[class*=author-box]", "[class*=toc]", "script", "style"], min_chars: 400}
+  - site: wallex
+    type: blog
+    sector: fintech
+    count: 2
+    discover: {listing: ["https://wallex.ir/blog/"], pattern: 'wallex\.ir/blog/[^/?#]*(?:[a-z0-9]+(?:-[a-z0-9%]+){2,}|\d{3,})[^/?#]*/?$', exclude: '/(category|tag|author|page|feed|wp-|search|login|signup|cart|product)/|[?#]', depth: 2}
+    gold: {include: ["article h1", "h1", "article .entry-content", ".entry-content", ".post-content", ".single-content", ".article-content", "article .content", ".post-body"], exclude: ["[class*=share]", "[class*=related]", "[class*=comment]", "[class*=tags]", "[class*=breadcrumb]", "[class*=author-box]", "[class*=toc]", "script", "style"], min_chars: 400}
+  - site: zarinpal
+    type: blog
+    sector: fintech
+    count: 2
+    discover: {listing: ["https://www.zarinpal.com/blog/"], pattern: 'zarinpal\.com/(?:[^/?#]+/)*[^/?#]{12,}/?$', exclude: '/(category|tag|author|page|feed|wp-|search|login|signup|cart|product)/|[?#]', depth: 2}
+    gold: {include: ["article h1", "h1", "article .entry-content", ".entry-content", ".post-content", ".single-content", ".article-content", "article .content", ".post-body"], exclude: ["[class*=share]", "[class*=related]", "[class*=comment]", "[class*=tags]", "[class*=breadcrumb]", "[class*=author-box]", "[class*=toc]", "script", "style"], min_chars: 400}
+  - site: darukade
+    type: blog
+    sector: health
+    count: 2
+    discover: {listing: ["https://www.darukade.com/mag/"], pattern: 'darukade\.com/(?:[^/?#]+/)*[^/?#]{12,}/?$', exclude: '/(category|tag|author|page|feed|wp-|search|login|signup|cart|product)/|[?#]', depth: 2}
+    gold: {include: ["article h1", "h1", "article .entry-content", ".entry-content", ".post-content", ".single-content", ".article-content", "article .content", ".post-body"], exclude: ["[class*=share]", "[class*=related]", "[class*=comment]", "[class*=tags]", "[class*=breadcrumb]", "[class*=author-box]", "[class*=toc]", "script", "style"], min_chars: 400}
+  - site: doctoreto
+    type: blog
+    sector: health
+    count: 2
+    discover: {listing: ["https://doctoreto.com/blog/"], pattern: 'doctoreto\.com/blog/[^/?#]*(?:[a-z0-9]+(?:-[a-z0-9%]+){2,}|\d{3,})[^/?#]*/?$', exclude: '/(category|tag|author|page|feed|wp-|search|login|signup|cart|product)/|[?#]', depth: 2}
+    gold: {include: ["article h1", "h1", "article .entry-content", ".entry-content", ".post-content", ".single-content", ".article-content", "article .content", ".post-body"], exclude: ["[class*=share]", "[class*=related]", "[class*=comment]", "[class*=tags]", "[class*=breadcrumb]", "[class*=author-box]", "[class*=toc]", "script", "style"], min_chars: 400}
+  - site: hidoctor
+    type: blog
+    sector: health
+    count: 2
+    discover: {listing: ["https://www.hidoctor.ir/"], pattern: 'hidoctor\.ir/[^/?#]*(?:[a-z0-9]+(?:-[a-z0-9%]+){2,}|\d{3,})[^/?#]*/?$', exclude: '/(category|tag|author|page|feed|wp-|search|login|signup|cart|product)/|[?#]', depth: 2}
+    gold: {include: ["article h1", "h1", "article .entry-content", ".entry-content", ".post-content", ".single-content", ".article-content", "article .content", ".post-body"], exclude: ["[class*=share]", "[class*=related]", "[class*=comment]", "[class*=tags]", "[class*=breadcrumb]", "[class*=author-box]", "[class*=toc]", "script", "style"], min_chars: 400}
+  - site: paziresh24
+    type: blog
+    sector: health
+    count: 2
+    discover: {listing: ["https://www.paziresh24.com/blog/"], pattern: 'paziresh24\.com/(?:[^/?#]+/)*[^/?#]{12,}/?$', exclude: '/(category|tag|author|page|feed|wp-|search|login|signup|cart|product)/|[?#]', depth: 2}
+    gold: {include: ["article h1", "h1", "article .entry-content", ".entry-content", ".post-content", ".single-content", ".article-content", "article .content", ".post-body"], exclude: ["[class*=share]", "[class*=related]", "[class*=comment]", "[class*=tags]", "[class*=breadcrumb]", "[class*=author-box]", "[class*=toc]", "script", "style"], min_chars: 400}
+  - site: irantalent
+    type: blog
+    sector: hr
+    count: 2
+    discover: {listing: ["https://www.irantalent.com/blog/"], pattern: 'irantalent\.com/blog/[^/?#]*(?:[a-z0-9]+(?:-[a-z0-9%]+){2,}|\d{3,})[^/?#]*/?$', exclude: '/(category|tag|author|page|feed|wp-|search|login|signup|cart|product)/|[?#]', depth: 2}
+    gold: {include: ["article h1", "h1", "article .entry-content", ".entry-content", ".post-content", ".single-content", ".article-content", "article .content", ".post-body"], exclude: ["[class*=share]", "[class*=related]", "[class*=comment]", "[class*=tags]", "[class*=breadcrumb]", "[class*=author-box]", "[class*=toc]", "script", "style"], min_chars: 400}
+  - site: karlancer
+    type: blog
+    sector: hr
+    count: 2
+    discover: {listing: ["https://www.karlancer.com/blog/"], pattern: 'karlancer\.com/blog/[^/?#]*(?:[a-z0-9]+(?:-[a-z0-9%]+){2,}|\d{3,})[^/?#]*/?$', exclude: '/(category|tag|author|page|feed|wp-|search|login|signup|cart|product)/|[?#]', depth: 2}
+    gold: {include: ["article h1", "h1", "article .entry-content", ".entry-content", ".post-content", ".single-content", ".article-content", "article .content", ".post-body"], exclude: ["[class*=share]", "[class*=related]", "[class*=comment]", "[class*=tags]", "[class*=breadcrumb]", "[class*=author-box]", "[class*=toc]", "script", "style"], min_chars: 400}
+  - site: ponisha
+    type: blog
+    sector: hr
+    count: 2
+    discover: {listing: ["https://ponisha.ir/blog/"], pattern: 'ponisha\.ir/blog/[^/?#]*(?:[a-z0-9]+(?:-[a-z0-9%]+){2,}|\d{3,})[^/?#]*/?$', exclude: '/(category|tag|author|page|feed|wp-|search|login|signup|cart|product)/|[?#]', depth: 2}
+    gold: {include: ["article h1", "h1", "article .entry-content", ".entry-content", ".post-content", ".single-content", ".article-content", "article .content", ".post-body"], exclude: ["[class*=share]", "[class*=related]", "[class*=comment]", "[class*=tags]", "[class*=breadcrumb]", "[class*=author-box]", "[class*=toc]", "script", "style"], min_chars: 400}
+  - site: azki
+    type: blog
+    sector: insurance
+    count: 2
+    discover: {listing: ["https://www.azki.com/blog/"], pattern: 'azki\.com/blog/[^/?#]*(?:[a-z0-9]+(?:-[a-z0-9%]+){2,}|\d{3,})[^/?#]*/?$', exclude: '/(category|tag|author|page|feed|wp-|search|login|signup|cart|product)/|[?#]', depth: 2}
+    gold: {include: ["article h1", "h1", "article .entry-content", ".entry-content", ".post-content", ".single-content", ".article-content", "article .content", ".post-body"], exclude: ["[class*=share]", "[class*=related]", "[class*=comment]", "[class*=tags]", "[class*=breadcrumb]", "[class*=author-box]", "[class*=toc]", "script", "style"], min_chars: 400}
+  - site: bimito
+    type: blog
+    sector: insurance
+    count: 2
+    discover: {listing: ["https://bimito.com/blog/"], pattern: 'bimito\.com/(?:[^/?#]+/)*[^/?#]{12,}/?$', exclude: '/(category|tag|author|page|feed|wp-|search|login|signup|cart|product)/|[?#]', depth: 2}
+    gold: {include: ["article h1", "h1", "article .entry-content", ".entry-content", ".post-content", ".single-content", ".article-content", "article .content", ".post-body"], exclude: ["[class*=share]", "[class*=related]", "[class*=comment]", "[class*=tags]", "[class*=breadcrumb]", "[class*=author-box]", "[class*=toc]", "script", "style"], min_chars: 400}
+  - site: fidibo
+    type: blog
+    sector: media
+    count: 2
+    discover: {listing: ["https://fidibo.com/blog/"], pattern: 'fidibo\.com/blog/[^/?#]*(?:[a-z0-9]+(?:-[a-z0-9%]+){2,}|\d{3,})[^/?#]*/?$', exclude: '/(category|tag|author|page|feed|wp-|search|login|signup|cart|product)/|[?#]', depth: 2}
+    gold: {include: ["article h1", "h1", "article .entry-content", ".entry-content", ".post-content", ".single-content", ".article-content", "article .content", ".post-body"], exclude: ["[class*=share]", "[class*=related]", "[class*=comment]", "[class*=tags]", "[class*=breadcrumb]", "[class*=author-box]", "[class*=toc]", "script", "style"], min_chars: 400}
+  - site: namava
+    type: blog
+    sector: media
+    count: 2
+    discover: {listing: ["https://www.namava.ir/mag/"], pattern: 'namava\.ir/mag/[^/?#]*(?:[a-z0-9]+(?:-[a-z0-9%]+){2,}|\d{3,})[^/?#]*/?$', exclude: '/(category|tag|author|page|feed|wp-|search|login|signup|cart|product)/|[?#]', depth: 2}
+    gold: {include: ["article h1", "h1", "article .entry-content", ".entry-content", ".post-content", ".single-content", ".article-content", "article .content", ".post-body"], exclude: ["[class*=share]", "[class*=related]", "[class*=comment]", "[class*=tags]", "[class*=breadcrumb]", "[class*=author-box]", "[class*=toc]", "script", "style"], min_chars: 400}
+  - site: taaghche
+    type: blog
+    sector: media
+    count: 2
+    discover: {listing: ["https://taaghche.com/blog/"], pattern: 'taaghche\.com/(?:[^/?#]+/)*[^/?#]{12,}/?$', exclude: '/(category|tag|author|page|feed|wp-|search|login|signup|cart|product)/|[?#]', depth: 2}
+    gold: {include: ["article h1", "h1", "article .entry-content", ".entry-content", ".post-content", ".single-content", ".article-content", "article .content", ".post-body"], exclude: ["[class*=share]", "[class*=related]", "[class*=comment]", "[class*=tags]", "[class*=breadcrumb]", "[class*=author-box]", "[class*=toc]", "script", "style"], min_chars: 400}
+  - site: achareh
+    type: blog
+    sector: mobility
+    count: 2
+    discover: {listing: ["https://achareh.co/blog/"], pattern: 'achareh\.co/blog/[^/?#]*(?:[a-z0-9]+(?:-[a-z0-9%]+){2,}|\d{3,})[^/?#]*/?$', exclude: '/(category|tag|author|page|feed|wp-|search|login|signup|cart|product)/|[?#]', depth: 2}
+    gold: {include: ["article h1", "h1", "article .entry-content", ".entry-content", ".post-content", ".single-content", ".article-content", "article .content", ".post-body"], exclude: ["[class*=share]", "[class*=related]", "[class*=comment]", "[class*=tags]", "[class*=breadcrumb]", "[class*=author-box]", "[class*=toc]", "script", "style"], min_chars: 400}
+  - site: alopeyk
+    type: blog
+    sector: mobility
+    count: 2
+    discover: {listing: ["https://alopeyk.com/blog/"], pattern: 'alopeyk\.com/(?:[^/?#]+/)*[^/?#]{12,}/?$', exclude: '/(category|tag|author|page|feed|wp-|search|login|signup|cart|product)/|[?#]', depth: 2}
+    gold: {include: ["article h1", "h1", "article .entry-content", ".entry-content", ".post-content", ".single-content", ".article-content", "article .content", ".post-body"], exclude: ["[class*=share]", "[class*=related]", "[class*=comment]", "[class*=tags]", "[class*=breadcrumb]", "[class*=author-box]", "[class*=toc]", "script", "style"], min_chars: 400}
+  - site: sheypoor-realestate
+    type: blog
+    sector: realestate
+    count: 2
+    discover: {listing: ["https://blog.sheypoor.com/"], pattern: 'blog\.sheypoor\.com/[^/?#]*(?:[a-z0-9]+(?:-[a-z0-9%]+){2,}|\d{3,})[^/?#]*/?$', exclude: '/(category|tag|author|page|feed|wp-|search|login|signup|cart|product)/|[?#]', depth: 2}
+    gold: {include: ["article h1", "h1", "article .entry-content", ".entry-content", ".post-content", ".single-content", ".article-content", "article .content", ".post-body"], exclude: ["[class*=share]", "[class*=related]", "[class*=comment]", "[class*=tags]", "[class*=breadcrumb]", "[class*=author-box]", "[class*=toc]", "script", "style"], min_chars: 400}
+  - site: basalam
+    type: blog
+    sector: retail
+    count: 2
+    discover: {listing: ["https://basalam.com/blog"], pattern: 'basalam\.com/blog/[^/?#]*(?:[a-z0-9]+(?:-[a-z0-9%]+){2,}|\d{3,})[^/?#]*/?$', exclude: '/(category|tag|author|page|feed|wp-|search|login|signup|cart|product)/|[?#]', depth: 2}
+    gold: {include: ["article h1", "h1", "article .entry-content", ".entry-content", ".post-content", ".single-content", ".article-content", "article .content", ".post-body"], exclude: ["[class*=share]", "[class*=related]", "[class*=comment]", "[class*=tags]", "[class*=breadcrumb]", "[class*=author-box]", "[class*=toc]", "script", "style"], min_chars: 400}
+  - site: digikala
+    type: blog
+    sector: retail
+    count: 2
+    discover: {listing: ["https://www.digikala.com/mag/"], pattern: 'digikala\.com/mag/[^/?#]*(?:[a-z0-9]+(?:-[a-z0-9%]+){2,}|\d{3,})[^/?#]*/?$', exclude: '/(category|tag|author|page|feed|wp-|search|login|signup|cart|product)/|[?#]', depth: 2}
+    gold: {include: ["article h1", "h1", "article .entry-content", ".entry-content", ".post-content", ".single-content", ".article-content", "article .content", ".post-body"], exclude: ["[class*=share]", "[class*=related]", "[class*=comment]", "[class*=tags]", "[class*=breadcrumb]", "[class*=author-box]", "[class*=toc]", "script", "style"], min_chars: 400}
+  - site: okala
+    type: blog
+    sector: retail
+    count: 2
+    discover: {listing: ["https://blog.okala.com/"], pattern: 'blog\.okala\.com/[^/?#]*(?:[a-z0-9]+(?:-[a-z0-9%]+){2,}|\d{3,})[^/?#]*/?$', exclude: '/(category|tag|author|page|feed|wp-|search|login|signup|cart|product)/|[?#]', depth: 2}
+    gold: {include: ["article h1", "h1", "article .entry-content", ".entry-content", ".post-content", ".single-content", ".article-content", "article .content", ".post-body"], exclude: ["[class*=share]", "[class*=related]", "[class*=comment]", "[class*=tags]", "[class*=breadcrumb]", "[class*=author-box]", "[class*=toc]", "script", "style"], min_chars: 400}
+  - site: technolife
+    type: blog
+    sector: retail
+    count: 2
+    discover: {listing: ["https://www.technolife.com/blog/"], pattern: 'technolife\.com/blog/[^/?#]*(?:[a-z0-9]+(?:-[a-z0-9%]+){2,}|\d{3,})[^/?#]*/?$', exclude: '/(category|tag|author|page|feed|wp-|search|login|signup|cart|product)/|[?#]', depth: 2}
+    gold: {include: ["article h1", "h1", "article .entry-content", ".entry-content", ".post-content", ".single-content", ".article-content", "article .content", ".post-body"], exclude: ["[class*=share]", "[class*=related]", "[class*=comment]", "[class*=tags]", "[class*=breadcrumb]", "[class*=author-box]", "[class*=toc]", "script", "style"], min_chars: 400}
+  - site: hamyarwp
+    type: blog
+    sector: saas
+    count: 2
+    discover: {listing: ["https://hamyarwp.com/blog/"], pattern: 'hamyarwp\.com/(?:[^/?#]+/)*[^/?#]{12,}/?$', exclude: '/(category|tag|author|page|feed|wp-|search|login|signup|cart|product)/|[?#]', depth: 2}
+    gold: {include: ["article h1", "h1", "article .entry-content", ".entry-content", ".post-content", ".single-content", ".article-content", "article .content", ".post-body"], exclude: ["[class*=share]", "[class*=related]", "[class*=comment]", "[class*=tags]", "[class*=breadcrumb]", "[class*=author-box]", "[class*=toc]", "script", "style"], min_chars: 400}
+  - site: yektanet
+    type: blog
+    sector: saas
+    count: 2
+    discover: {listing: ["https://www.yektanet.com/blog/"], pattern: 'yektanet\.com/(?:[^/?#]+/)*[^/?#]{12,}/?$', exclude: '/(category|tag|author|page|feed|wp-|search|login|signup|cart|product)/|[?#]', depth: 2}
+    gold: {include: ["article h1", "h1", "article .entry-content", ".entry-content", ".post-content", ".single-content", ".article-content", "article .content", ".post-body"], exclude: ["[class*=share]", "[class*=related]", "[class*=comment]", "[class*=tags]", "[class*=breadcrumb]", "[class*=author-box]", "[class*=toc]", "script", "style"], min_chars: 400}
+  - site: alibaba
+    type: blog
+    sector: travel
+    count: 2
+    discover: {listing: ["https://www.alibaba.ir/mag/"], pattern: 'alibaba\.ir/mag/[^/?#]*(?:[a-z0-9]+(?:-[a-z0-9%]+){2,}|\d{3,})[^/?#]*/?$', exclude: '/(category|tag|author|page|feed|wp-|search|login|signup|cart|product)/|[?#]', depth: 2}
+    gold: {include: ["article h1", "h1", "article .entry-content", ".entry-content", ".post-content", ".single-content", ".article-content", "article .content", ".post-body"], exclude: ["[class*=share]", "[class*=related]", "[class*=comment]", "[class*=tags]", "[class*=breadcrumb]", "[class*=author-box]", "[class*=toc]", "script", "style"], min_chars: 400}
+  - site: eligasht
+    type: blog
+    sector: travel
+    count: 2
+    discover: {listing: ["https://www.eligasht.com/Blog/"], pattern: 'eligasht\.com/(?:[^/?#]+/)*[^/?#]{12,}/?$', exclude: '/(category|tag|author|page|feed|wp-|search|login|signup|cart|product)/|[?#]', depth: 2}
+    gold: {include: ["article h1", "h1", "article .entry-content", ".entry-content", ".post-content", ".single-content", ".article-content", "article .content", ".post-body"], exclude: ["[class*=share]", "[class*=related]", "[class*=comment]", "[class*=tags]", "[class*=breadcrumb]", "[class*=author-box]", "[class*=toc]", "script", "style"], min_chars: 400}
+  - site: jabama
+    type: blog
+    sector: travel
+    count: 2
+    discover: {listing: ["https://www.jabama.com/mag/"], pattern: 'jabama\.com/mag/[^/?#]*(?:[a-z0-9]+(?:-[a-z0-9%]+){2,}|\d{3,})[^/?#]*/?$', exclude: '/(category|tag|author|page|feed|wp-|search|login|signup|cart|product)/|[?#]', depth: 2}
+    gold: {include: ["article h1", "h1", "article .entry-content", ".entry-content", ".post-content", ".single-content", ".article-content", "article .content", ".post-body"], exclude: ["[class*=share]", "[class*=related]", "[class*=comment]", "[class*=tags]", "[class*=breadcrumb]", "[class*=author-box]", "[class*=toc]", "script", "style"], min_chars: 400}
+  - site: mrbilit
+    type: blog
+    sector: travel
+    count: 2
+    discover: {listing: ["https://mrbilit.com/mag/"], pattern: 'mrbilit\.com/mag/[^/?#]*(?:[a-z0-9]+(?:-[a-z0-9%]+){2,}|\d{3,})[^/?#]*/?$', exclude: '/(category|tag|author|page|feed|wp-|search|login|signup|cart|product)/|[?#]', depth: 2}
+    gold: {include: ["article h1", "h1", "article .entry-content", ".entry-content", ".post-content", ".single-content", ".article-content", "article .content", ".post-body"], exclude: ["[class*=share]", "[class*=related]", "[class*=comment]", "[class*=tags]", "[class*=breadcrumb]", "[class*=author-box]", "[class*=toc]", "script", "style"], min_chars: 400}
+  - site: snapptrip
+    type: blog
+    sector: travel
+    count: 2
+    discover: {listing: ["https://www.snapptrip.com/blog/"], pattern: 'snapptrip\.com/blog/[^/?#]*(?:[a-z0-9]+(?:-[a-z0-9%]+){2,}|\d{3,})[^/?#]*/?$', exclude: '/(category|tag|author|page|feed|wp-|search|login|signup|cart|product)/|[?#]', depth: 2}
+    gold: {include: ["article h1", "h1", "article .entry-content", ".entry-content", ".post-content", ".single-content", ".article-content", "article .content", ".post-body"], exclude: ["[class*=share]", "[class*=related]", "[class*=comment]", "[class*=tags]", "[class*=breadcrumb]", "[class*=author-box]", "[class*=toc]", "script", "style"], min_chars: 400}
+  - site: bimebazar
+    type: blog
+    sector: insurance
+    count: 2
+    discover: {listing: ["https://bimebazar.com/blog"], pattern: 'bimebazar\.com/blog/[^/?#]*(?:[a-z0-9]+(?:-[a-z0-9%]+){2,}|\d{3,})[^/?#]*/?$', exclude: '/(category|tag|author|page|feed|wp-|search|login|signup|cart|product)/|[?#]', depth: 2}
+    gold: {include: ["article h1", "h1", "article .entry-content", ".entry-content", ".post-content", ".single-content", ".article-content", "article .content", ".post-body"], exclude: ["[class*=share]", "[class*=related]", "[class*=comment]", "[class*=tags]", "[class*=breadcrumb]", "[class*=author-box]", "[class*=toc]", "script", "style"], min_chars: 400}
+  - site: zibal
+    type: blog
+    sector: fintech
+    count: 2
+    discover: {listing: ["https://zibal.ir/blog"], pattern: 'zibal\.ir/blog/[^/?#]*(?:[a-z0-9]+(?:-[a-z0-9%]+){2,}|\d{3,})[^/?#]*/?$', exclude: '/(category|tag|author|page|feed|wp-|search|login|signup|cart|product)/|[?#]', depth: 2}
+    gold: {include: ["article h1", "h1", "article .entry-content", ".entry-content", ".post-content", ".single-content", ".article-content", "article .content", ".post-body"], exclude: ["[class*=share]", "[class*=related]", "[class*=comment]", "[class*=tags]", "[class*=breadcrumb]", "[class*=author-box]", "[class*=toc]", "script", "style"], min_chars: 400}
+  - site: kilid
+    type: blog
+    sector: realestate
+    count: 2
+    discover: {listing: ["https://kilid.com/blog"], pattern: 'kilid\.com/(?:[^/?#]+/)*[^/?#]{12,}/?$', exclude: '/(category|tag|author|page|feed|wp-|search|login|signup|cart|product)/|[?#]', depth: 2}
+    gold: {include: ["article h1", "h1", "article .entry-content", ".entry-content", ".post-content", ".single-content", ".article-content", "article .content", ".post-body"], exclude: ["[class*=share]", "[class*=related]", "[class*=comment]", "[class*=tags]", "[class*=breadcrumb]", "[class*=author-box]", "[class*=toc]", "script", "style"], min_chars: 400}

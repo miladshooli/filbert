@@ -173,7 +173,7 @@ async def main_async(args: argparse.Namespace) -> int:
     cache = Cache(settings.cache_dir)
     ds = Dataset(args.dataset)
     ds.create()
-    sources = load_sources()
+    sources = load_sources(Path(args.sources_file)) if args.sources_file else load_sources()
     if args.sources:
         wanted = set(args.sources.split(","))
         sources = [s for s in sources if s["site"] in wanted]
@@ -215,6 +215,9 @@ def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--dataset", default="fa-200")
     ap.add_argument("--sources", default="", help="فقط این سایت‌ها (با ویرگول)")
+    ap.add_argument(
+        "--sources-file", default=None, help="فایل YAML منابع (پیش‌فرض bench/sources.yml)"
+    )
     ap.add_argument("--limit", type=int, default=None, help="سقف صفحه برای هر منبع (به‌جای count)")
     ap.add_argument("--parallel", type=int, default=4, help="منابع همزمان (هر منبع یک host)")
     ap.add_argument("--timeout", type=float, default=900, help="سقف ثانیه برای هر منبع")

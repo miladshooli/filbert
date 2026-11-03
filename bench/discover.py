@@ -77,8 +77,20 @@ async def from_listing(
     return out
 
 
+_SUBLISTING_RE = re.compile(
+    r"/(category|cat|topic|topics|section|tag)s?/|/(blog|mag|academy|articles)/[^/]+/$",
+    re.IGNORECASE,
+)
+
+
+async def _sublistings(fetcher: Fetcher, page: str, limit: int = 6) -> list[str]:
+    """لینک‌های دسته‌بندی/بخش در صفحه فهرست (برای بلاگ‌هایی که صفحه اصلی‌شان فقط دسته‌ها را نشان می‌دهد)."""
+    links = await from_listing(fetcher, page, ".", None, 400)
+    return [u for u in links if _SUBLISTING_RE.search(u)][:limit]
+
+
 async def discover(source: dict, settings: Settings, limit: int) -> list[str]:
-    """`source["discover"]` = {sitemap|listing|urls, pattern, exclude}"""
+    """`source["discover"]` = {sitemap|listing|urls, pattern, exclude, depth}؛ depth=2 → دسته‌ها هم خوانده می‌شوند."""
     d = source["discover"]
     if "urls" in d:
         return [normalize_url(u) for u in d["urls"]][:limit]
