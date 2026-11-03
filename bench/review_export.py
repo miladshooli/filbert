@@ -10,9 +10,13 @@ import json
 from pathlib import Path
 
 from bench.datasets import Dataset
+from filbert.config import Settings
 from filbert.extract.blocks import iter_candidate_blocks
 from filbert.extract.domtext import node_text, parse, xpath_of
 from filbert.meta.head import extract_head
+from filbert.pipeline import extract_html
+
+SETTINGS = Settings(_env_file=None)
 
 
 def main() -> None:
@@ -30,6 +34,11 @@ def main() -> None:
         seo = extract_head(tree, p.url)
         gold = ds.gold_text(p.id) or ""
         gold_meta = ds.gold_meta(p.id) or {}
+        presource = "auto"
+        if not gold:
+            # بدون برچسب خودکار: پیش‌تیک از خروجی ensemble خودِ filbert (فقط برای راحتی بازبین؛ status=silver)
+            gold = extract_html(html, p.url, settings=SETTINGS).content.text_raw or ""
+            presource = "silver"
         blocks = []
         for i, (node, tag) in enumerate(iter_candidate_blocks(tree.body)):
             text = node_text(node)
@@ -52,6 +61,7 @@ def main() -> None:
             "status": p.label_status,
             "title": seo.title,
             "sector": p.extra.get("sector"),
+            "precheck_source": presource,
             "meta": {
                 "title": gold_meta.get("title", seo.title),
                 "description": gold_meta.get("description", seo.description),
