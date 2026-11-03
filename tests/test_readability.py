@@ -68,6 +68,18 @@ def test_image_urls_absolute_and_alt_kept() -> None:
     assert 'alt="نمودار قیمت بیت‌کوین"' in fig.html
 
 
+def test_paragraph_with_only_image_becomes_figure() -> None:
+    from filbert.extract.blocks import collect_blocks
+
+    tree = parse(
+        '<html><body><article><p>متن کافی برای یک پاراگراف واقعی است.</p><p><img src="/a.jpg" alt="تصویر"></p></article></body></html>'
+    )
+    blocks = []
+    collect_blocks(tree.body, "https://a.ir/", blocks, source="t")
+    assert [b.type for b in blocks] == ["p", "figure"]
+    assert blocks[1].html.startswith("<figure") and 'alt="تصویر"' in blocks[1].html
+
+
 def test_xpath() -> None:
     t = parse("<html><body><div><p>a</p><p>b</p></div><div><p>c</p></div></body></html>")
     ps = t.css("p")

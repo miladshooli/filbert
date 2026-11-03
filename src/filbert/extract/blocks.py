@@ -140,7 +140,9 @@ def emit_block(
     else:
         if not text and not has_img:
             return
-        if len(text) < max(min_chars, 100) and ld(node) > 0.5:
+        if not text and has_img:
+            tag = "figure"  # پاراگرافی که فقط تصویر دارد (<p><img>) → figure
+        elif len(text) < max(min_chars, 100) and ld(node) > 0.5:
             return  # تکه لینکی کوتاه (ناوبری، اشتراک‌گذاری)
     if ctx is not None:
         html, xpath = ctx.html(node, tag, base_url), ctx.xpath(node)
