@@ -18,6 +18,7 @@ class PrecleanRules:
     protected_tags: frozenset[str]
     negative: re.Pattern[str]
     maybe_candidate: re.Pattern[str]
+    ui_phrases: frozenset[str] = frozenset()
 
 
 @dataclass(frozen=True, slots=True)
@@ -38,6 +39,10 @@ class Rules:
     source: Path
 
 
+def _norm_phrase(s: str) -> str:
+    return " ".join(str(s).replace("\u200c", " ").split()).lower()
+
+
 def _rx(parts: str | list[str]) -> re.Pattern[str]:
     if isinstance(parts, list):
         parts = "|".join(f"(?:{p})" for p in parts)
@@ -56,6 +61,7 @@ def load_rules(path: Path | None = None) -> Rules:
             protected_tags=frozenset(pc.get("protected_tags", ["html", "body"])),
             negative=_rx(pc["negative_patterns"]),
             maybe_candidate=_rx(pc["maybe_candidate"]),
+            ui_phrases=frozenset(_norm_phrase(x) for x in pc.get("ui_phrases", [])),
         ),
         readability=ReadabilityRules(
             positive=_rx(rd["positive"]),

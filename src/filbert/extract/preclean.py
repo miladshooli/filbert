@@ -11,12 +11,20 @@ from __future__ import annotations
 import re
 from dataclasses import dataclass
 
-from filbert.extract.domtext import Node, Tree, class_id, has_ancestor, inner_text_len
+from filbert.extract.domtext import (
+    Node,
+    Tree,
+    class_id,
+    has_ancestor,
+    has_block_child,
+    inner_text_len,
+)
 from filbert.extract.rules import PrecleanRules
 
 _HIDDEN_STYLE_RE = re.compile(r"display\s*:\s*none|visibility\s*:\s*hidden", re.IGNORECASE)
 _MAIN_TAGS = frozenset({"article", "main"})
 _HEADER_EXCEPTION = frozenset({"header", "h1"})
+_UI_LEAF_TAGS = frozenset({"a", "span", "p", "div", "button", "li", "label", "b", "strong"})
 
 
 @dataclass(slots=True)
@@ -79,6 +87,11 @@ def preclean(tree: Tree, rules: PrecleanRules) -> PrecleanStats:
             continue
         if not n.is_element_node or n.tag in rules.protected_tags:
             continue
+        if rules.ui_phrases and n.tag in _UI_LEAF_TAGS and not has_block_child(n):
+            txt = " ".join(n.text(deep=True).replace("\u200c", " ").split()).lower()
+            if txt and len(txt) <= 40 and txt in rules.ui_phrases:
+                to_remove.append((n, "pattern"))
+                continue
         if is_hidden(n):
             if (
                 tl := inner_text_len(n)

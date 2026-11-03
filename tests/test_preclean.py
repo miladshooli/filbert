@@ -152,6 +152,13 @@ def test_tables_pre_blockquote_kept() -> None:
         assert s in out
 
 
+def test_ui_phrases_removed_but_real_text_kept() -> None:
+    html = "<body><article><p>متن اصلی مقاله که باید بماند.</p><p>کپی لینک</p><a href='/s'>اشتراک‌گذاری</a><span>نمایش بیشتر</span><p>گزارش سالانه شرکت منتشر شد.</p></article></body>"
+    out = clean(html)
+    assert "متن اصلی" in out and "گزارش سالانه" in out
+    assert "کپی لینک" not in out and "اشتراک" not in out and "نمایش بیشتر" not in out
+
+
 def test_stats() -> None:
     t = parse(
         "<body><script></script><div hidden>x</div><div class='comments'>c</div><!--k--><p>م</p></body>"

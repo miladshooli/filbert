@@ -30,6 +30,31 @@ preclean:
     - comment|share|social|related|sidebar|breadcrumb|cookie|popup|modal|newsletter|promo|advert|banner|menu|pagination
     - nazar|didgah|eshterak|tabligh|matalebe-mortabet|khabarname|agahi|link-?haye-?mofid|peyvand
     - native-ad|-ad-|_ad_|^ad-|\bads?\b|sponsored|adv_|_adv|-adv\b|reportage|reportaj
+  # عنصرِ برگ (بدون فرزند بلوکی) که کل متنش دقیقاً یکی از این‌ها باشد حذف می‌شود (دکمه‌های متنی اشتراک/کپی/نمایش بیشتر)
+  ui_phrases:
+    - کپی لینک
+    - کپی کردن لینک
+    - اشتراک‌گذاری
+    - اشتراک گذاری
+    - به اشتراک بگذارید
+    - نمایش بیشتر
+    - مشاهده بیشتر
+    - ادامه مطلب
+    - بیشتر بخوانید
+    - بستن
+    - لایک
+    - پاسخ
+    - گزارش
+    - گزارش خطا
+    - چاپ
+    - پرینت
+    - ذخیره
+    - ارسال
+    - share
+    - copy link
+    - read more
+    - show more
+    - close
   # اگر class/id این را هم match کند، با الگوی بالا حذف نمی‌شود (محافظ محتوای اصلی)
   maybe_candidate: article|body|column|content|^main$|main-?(content|body|text|article)|shadow|matn|mohtava|maghale|post-?body|entry
 
