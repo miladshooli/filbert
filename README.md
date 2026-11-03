@@ -45,7 +45,7 @@ uv run python -m bench.collect --dataset fa-200     # جمع‌آوری/تکمی
 uv run python -m bench.label fa-200 --all           # صفحات برچسب‌زنی دستی → bench/datasets/fa-200/label/
 uv run python -m bench.speed --dataset fa-200       # p50/p95 و throughput با ۱/۴/۸ پردازه
 ```
-وضعیت فعلی در [bench/report.md](bench/report.md).
+وضعیت فعلی در [bench/report.md](bench/report.md): روی ۲۰۲ صفحه فارسی با برچسب انسانی، F1 متن اصلی **0.862** (Trafilatura: 0.728).
 
 ## توسعه
 ```

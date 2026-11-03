@@ -1,7 +1,6 @@
 باگ بانتی نوبیتکس
 
 حفظ امنیت و حفاظت از اطلاعات و دارایی کاربران مهم‌ترین مسئولیت نوبیتکس است؛ به همین منظور از شما دعوت می‌کنیم با ارسال گزارش در شناسایی آسیب‌پذیری‌های سایت نوبیتکس در انجام بهتر این مسئولیت ما را یاری کنید.
-ارسال گزارش
 
 nobitex.ir , api.nobitex.ir
 *.nobitex.ir
@@ -28,20 +27,31 @@ nobitex.ir , api.nobitex.ir
 تا ۱
 
 جوایز
+
 زمان و تخصص شما برای شناسایی آسیب‌پذیری‌های نوبیتکس ارزشمند است؛ نوبیتکس تلاش می‌کند با ارائه جوایز جذاب و منصفانه متخصصین امنیت را به مشارکت در باگ بانتی دعوت کند. در همین راستا بر اساس شدت و اهمیت آسیب‌پذیری گزارش شده، جوایزی تعیین شده است؛ جوایز پس از داوری گزارش ارسال شده و تایید آسیب‌پذیری توسط تیم امنیت نوبیتکس، از طریق ایمیل رسمی نوبیتکس به شما اعلام می‌شود.
 
-حیاتی500,000,000+ تومان
+حیاتی
+
+500,000,000+ تومان
 
 دسترسی غیرمجاز به کیف پول هات/کلد نوبیتکس
 
-بحرانیتا 350,000,000 تومان
+جزییات
+
+بحرانی
+
+تا 350,000,000 تومان
 
 دسترسی به حساب کاربران به صورت عمده
 Injection + Privilege Escalation to System Account
 arbitrary code/command execution on vital servers
 فریب دادن سیستم تشخیص خودکار واریز کریپتویی که منجر به شارژ حساب کاربر شود
 
-بالاتا 70,000,000 تومان
+جزییات
+
+بالا
+
+تا 70,000,000 تومان
 
 Vertical/Horizontal Privilege Escalation
 Insecure Direct Object Reference
@@ -51,20 +61,30 @@ Source Code Disclosure
 Server Side Request Forgery that leads to higher impact like accessing files
 Stored XSS (Non-Privileged User to Privileged user)
 
-متوسطتا 12,000,000 تومان
+جزییات
+
+متوسط
+
+تا 12,000,000 تومان
 
 Account Takeover by User Interaction
 Reflected XSS
 Mass User Enumeration
 OAuth misusable misconfiguration
 
-پایینتا 3,000,000 تومان
+جزییات
+
+پایین
+
+تا 3,000,000 تومان
 
 Open Redirect(GET-Based)
 SSRF (External)
 Information Disclosure through Errors
 SMS Bomber
 CRLF Injection
+
+جزییات
 
 قوانین
 

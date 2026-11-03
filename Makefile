@@ -1,4 +1,5 @@
 UV ?= uv
+RUN ?= uv run --all-extras
 
 .PHONY: install test lint bench bench-update fixtures-dataset
 
@@ -6,17 +7,17 @@ install:
 	$(UV) sync --all-extras --group dev
 
 lint:
-	$(UV) run ruff check . --fix && $(UV) run ruff format .
+	$(RUN) ruff check . --fix && $(RUN) ruff format .
 
 test:
-	$(UV) run pytest -q
+	$(RUN) pytest -q
 
 fixtures-dataset:
-	$(UV) run python -m bench.make_fixtures_dataset
+	$(RUN) python -m bench.make_fixtures_dataset
 
 # قاعده CLAUDE.md: هر تغییر در src/filbert/extract/ باید این را اجرا کند؛ افت > 0.5 F1 یا ۱۰٪ سرعت = خطا
 bench:
-	$(UV) run python -m bench.run --compare-with trafilatura --repeat 3 --check
+	$(RUN) python -m bench.run --compare-with trafilatura --repeat 3 --check
 
 bench-update:
-	$(UV) run python -m bench.run --compare-with trafilatura --repeat 3 --update-baseline
+	$(RUN) python -m bench.run --compare-with trafilatura --repeat 3 --update-baseline
