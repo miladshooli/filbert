@@ -1,0 +1,5 @@
+{
+  "canonical": "https://roocket.ir/articles/slint-and-the-nodejs-event-loop/",
+  "description": "هماهنگ‌سازی Event Loopهای Slint و Node.js و اینکه چگونه Slint با استفاده از libuv توانست دو چرخه رویداد را روی یک Thread مشترک مدیریت کند.",
+  "title": "چرا ادغام Event Loopها کار ساده‌ای نیست؟ - راکت"
+}

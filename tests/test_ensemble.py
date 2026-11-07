@@ -139,6 +139,25 @@ def test_cetd_anchor_when_majority_is_thin() -> None:
     assert not res2.recall_anchor
 
 
+def test_single_vote_heading_between_certain_blocks_is_kept() -> None:
+    long = "این یک پاراگراف واقعی و بلند از بدنه مقاله است که چند جمله دارد و ادامه پیدا می‌کند."
+    tree = parse(
+        f"<html><body><p>{long}</p><h2>بخش دوم</h2><p>{long} دوم</p><h2>بخش تنها</h2></body></html>"
+    )
+    xp = ["/html/body/p[1]", "/html/body/h2[1]", "/html/body/p[2]", "/html/body/h2[2]"]
+    from filbert.extract.blocks import collect_blocks
+
+    allb: list[RawBlock] = []
+    collect_blocks(tree.body, None, allb, source="cetd")
+    paras = [b for b in allb if b.type == "p"]
+    outs = {"readability": list(paras), "cetd": allb, "dom": list(paras)}
+    chosen = ensemble.select(ensemble.vote(outs, doc_order(tree.body), tree.body.mem_id))
+    texts = [v.block.text for v in chosen]
+    assert "بخش دوم" in texts  # بین دو پاراگراف قطعی
+    assert "بخش تنها" not in texts  # بعدش بلوک قطعی نیست
+    assert xp
+
+
 def test_recall_fallback_on_short_output() -> None:
     tree = parse("<html><body><p>الف</p><div><p>ب</p></div></body></html>")
     res = ensemble.extract(tree, RULES, min_text_chars=200)

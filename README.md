@@ -14,12 +14,19 @@ filbert takes a URL (or raw HTML) and returns the article body as clean text, se
 
 Existing tools (Trafilatura, Readability, newspaper) are tuned on English news. Persian sites bring their own problems: ZWNJ inside words, Arabic-vs-Persian letter forms, Jalali dates, Finglish boilerplate class names (`nazarat`, `tabligh`, `matalebe-mortabet`), and a lot of React/Nuxt storefronts. filbert was built against a 200-page, hand-labelled Persian benchmark covering news, blogs, product pages, landing pages and forums.
 
-| Main-content F1 (token level, 202 human-labelled pages) | all | news | blog | product | landing | forum |
-| --- | --- | --- | --- | --- | --- | --- |
-| **filbert** (ensemble) | **0.862** | 0.938 | 0.957 | 0.804 | 0.827 | 0.698 |
-| Trafilatura 2.3 | 0.728 | 0.842 | 0.909 | 0.706 | 0.503 | 0.511 |
+Two human-labelled Persian benchmarks, token-level F1 of the main content:
 
-Pages with F1 above 0.9: 58% vs 33%. Metadata fields (title, description, canonical, published date, author) match the gold labels on 100% of pages where the site declares them. Full report: [bench/report.md](bench/report.md).
+| Dataset | pages | **filbert** | Trafilatura 2.3 | pages with F1 > 0.9 (filbert / Trafilatura) |
+| --- | --- | --- | --- | --- |
+| `fa-200`: news, blogs, product, landing, forum pages from 21 sites | 202 | **0.861** | 0.728 | 58% / 33% |
+| `fa-biz-100`: blog posts of 45 Iranian businesses in 13 sectors | 84 | **0.956** | 0.839 | 90% / 44% |
+
+| `fa-200` by page type | news | blog | product | landing | forum |
+| --- | --- | --- | --- | --- | --- |
+| filbert | 0.938 | 0.957 | 0.804 | 0.827 | 0.698 |
+| Trafilatura | 0.842 | 0.909 | 0.706 | 0.503 | 0.511 |
+
+On `fa-biz-100` filbert leads in every sector, from edu/HR/media (≥ 0.99) to fintech and cloud (0.91 / 0.89). Metadata fields (title, description, canonical, published date, author) match the gold labels on 100% of pages where the site declares them. Full report: [bench/report.md](bench/report.md).
 
 ## Install
 
@@ -139,12 +146,12 @@ All settings live in `filbert.config.Settings` (pydantic-settings) and can be se
 ```bash
 git clone https://github.com/miladshooli/filbert && cd filbert
 uv sync --all-extras --group dev
-uv run --all-extras pytest -q                 # 228 tests
-make bench                                    # fa-200 + fixtures vs Trafilatura, regression gate
+uv run --all-extras pytest -q                 # 234 tests
+make bench                                    # all datasets vs Trafilatura, regression gate
 uv run --all-extras python -m bench.speed     # p50/p95 and throughput
 ```
 
-The `fa-200` dataset (news, blogs, product, landing and forum pages from 21 Persian sites, with human-reviewed gold labels) ships in `bench/datasets/fa-200/`. `bench/collect.py` rebuilds it from `bench/sources.yml`; `bench/label.py` and the online review tool produce gold labels; `bench/promote_labels.py` applies them.
+The `fa-200` dataset (news, blogs, product, landing and forum pages from 21 Persian sites) and `fa-biz-100` (blog posts from 45 Iranian businesses across fintech, insurance, travel, retail, education, health, cloud and more), both with human-reviewed gold labels, ship in `bench/datasets/`. `bench/collect.py` rebuilds it from `bench/sources.yml`; `bench/label.py` and the online review tool produce gold labels; `bench/promote_labels.py` applies them.
 
 Design document: [docs/BLUEPRINT.md](docs/BLUEPRINT.md). Decisions log: [docs/DECISIONS.md](docs/DECISIONS.md). Changelog: [CHANGELOG.md](CHANGELOG.md).
 

@@ -54,6 +54,24 @@ def _unhide(node: Node) -> None:
         del node.attrs["style"]
 
 
+_TAXONOMY_TOKEN_RE = re.compile(
+    r"^(?:tag|category|post_tag|cat|format|status|type)-", re.IGNORECASE
+)
+
+
+def _is_boilerplate_article(node: Node, rules: PrecleanRules) -> bool:
+    """`article`ی که class/id آن خودش boilerplate است (مثل `comment-body` هر نظر وردپرس).
+    کلاس‌های taxonomy وردپرس (`tag-social-media`, `category-...`) نادیده گرفته می‌شوند تا پست واقعی
+    به‌خاطر نام برچسبش boilerplate حساب نشود."""
+    tokens = [t for t in class_id(node).split() if not _TAXONOMY_TOKEN_RE.match(t)]
+    return bool(tokens) and bool(rules.negative.search(" ".join(tokens)))
+
+
+def _holds_main_content(node: Node, rules: PrecleanRules) -> bool:
+    """آیا زیر این ظرف یک `article`/`main` واقعی هست؟ `article`های boilerplate حساب نمی‌شوند."""
+    return any(not _is_boilerplate_article(a, rules) for a in node.css("article, main"))
+
+
 def matches_negative(node: Node, rules: PrecleanRules) -> bool:
     cid = class_id(node)
     if not cid:
@@ -88,7 +106,12 @@ def preclean(tree: Tree, rules: PrecleanRules) -> PrecleanStats:
         if not n.is_element_node or n.tag in rules.protected_tags:
             continue
         if rules.ui_phrases and n.tag in _UI_LEAF_TAGS and not has_block_child(n):
-            txt = " ".join(n.text(deep=True).replace("\u200c", " ").split()).lower()
+            txt = (
+                " ".join(n.text(deep=True).replace("\u200c", " ").split())
+                .lower()
+                .rstrip(":：؛ ")
+                .strip()
+            )
             if txt and len(txt) <= 40 and txt in rules.ui_phrases:
                 to_remove.append((n, "pattern"))
                 continue
@@ -103,7 +126,7 @@ def preclean(tree: Tree, rules: PrecleanRules) -> PrecleanStats:
         if matches_negative(n, rules):
             if n.tag in _HEADER_EXCEPTION and has_ancestor(n, _MAIN_TAGS):
                 continue
-            if n.css_first("article, main") is not None:
+            if _holds_main_content(n, rules):
                 continue  # ظرفی که محتوای اصلی داخلش است حذف نمی‌شود
             to_remove.append((n, "pattern"))
 

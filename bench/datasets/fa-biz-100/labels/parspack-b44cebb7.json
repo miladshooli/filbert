@@ -1,0 +1,43 @@
+{
+  "meta": {
+    "author": null,
+    "canonical": "https://parspack.com/blog/hosting/cdn-tutorial",
+    "description": "آموزش استفاده از cdn، بررسی مقالات آموزشی در ارتباط با انواع سی دی ان های مطرح در دنیای وب، مزایا و معایای هر کدام و نکات فنی و مهم",
+    "published_at": null,
+    "title": "آموزش CDN | آموزش رایگان کار با سی دی ان - بلاگ پارس پک"
+  },
+  "n_blocks": 80,
+  "note": null,
+  "on": [
+    27,
+    28,
+    32,
+    33,
+    37,
+    38,
+    42,
+    43,
+    47,
+    48,
+    52,
+    53,
+    57,
+    58,
+    62,
+    63,
+    67,
+    68,
+    72,
+    73,
+    77,
+    78,
+    81,
+    82
+  ],
+  "page_id": "parspack-b44cebb7",
+  "site": "parspack",
+  "status": "unsure",
+  "type": "blog",
+  "updated_at": "2026-11-07T12:28:46.698Z",
+  "url": "https://parspack.com/blog/hosting/cdn-tutorial"
+}

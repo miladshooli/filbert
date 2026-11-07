@@ -157,4 +157,4 @@ def test_cli_bad_format() -> None:
 
 def test_cli_version() -> None:
     result = runner.invoke(app, ["version"])
-    assert result.exit_code == 0 and "0.5.1" in result.output
+    assert result.exit_code == 0 and "0.5.2" in result.output

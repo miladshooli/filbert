@@ -5,3 +5,6 @@
 برچسب: `auto` برای صفحاتی که selector عمومی وردپرس جواب داد، بقیه `unlabeled`؛ بازبینی انسانی با ابزار آنلاین و `python -m bench.promote_labels --dataset fa-biz-100`.
 
 جمع‌آوری: `python -m bench.collect --dataset fa-biz-100 --sources-file bench/sources_biz.yml`. ۱۶ کسب‌وکار دیگر (tabdeal، snapp، tapsi، filimo، irancell، shatel، …) از این شبکه در دسترس نبودند.
+
+## وضعیت (2026-11-07)
+بازبینی انسانی کامل: ۷۷ gold، ۷ نامطمئن، ۱ رد؛ برچسب‌های خام در `labels/`. filbert 0.956 در برابر Trafilatura 0.839. ضعیف‌ترین صفحات: صفحات دسته‌بندی (parspack، digipay) و لندینگ React داروکده.

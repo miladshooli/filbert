@@ -12,7 +12,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 
 from filbert.extract import cetd, domscore, readability
-from filbert.extract.blocks import PageContext, RawBlock, doc_order, join_text
+from filbert.extract.blocks import HEADING_TAGS, PageContext, RawBlock, doc_order, join_text
 from filbert.extract.domtext import Node, Tree
 from filbert.extract.rules import Rules
 from filbert.models import Block
@@ -20,6 +20,7 @@ from filbert.models import Block
 EXTRACTORS: tuple[str, ...] = (readability.SOURCE, cetd.SOURCE, domscore.SOURCE)
 GAP_FILL_SOURCE = readability.SOURCE
 GAP_FILL_MIN_CHARS = 80
+HEADING_GAP_WINDOW = 2
 
 
 @dataclass(slots=True)
@@ -132,6 +133,14 @@ def select(voted: list[Voted], n_extractors: int = len(EXTRACTORS)) -> list[Vote
             and len(v.block.text) > GAP_FILL_MIN_CHARS
             and any(certain[:i])
             and any(certain[i + 1 :])
+        ):
+            chosen.append(v)
+            continue
+        # هدینگ تک‌رأی بین بلوک‌های قطعی (حداکثر ۲ بلوک فاصله): تیتر بخش است، نه boilerplate
+        if (
+            v.block.type in HEADING_TAGS
+            and any(certain[max(0, i - HEADING_GAP_WINDOW) : i])
+            and any(certain[i + 1 : i + 1 + HEADING_GAP_WINDOW])
         ):
             chosen.append(v)
     return chosen

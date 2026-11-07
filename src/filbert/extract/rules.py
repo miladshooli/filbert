@@ -40,7 +40,7 @@ class Rules:
 
 
 def _norm_phrase(s: str) -> str:
-    return " ".join(str(s).replace("\u200c", " ").split()).lower()
+    return " ".join(str(s).replace("\u200c", " ").split()).lower().rstrip(":：؛ ").strip()
 
 
 def _rx(parts: str | list[str]) -> re.Pattern[str]:

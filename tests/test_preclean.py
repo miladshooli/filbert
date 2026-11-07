@@ -140,6 +140,23 @@ def test_header_h1_inside_article_kept() -> None:
     assert "سایت" not in out  # هدر سایت با الگوی menu حذف می‌شود
 
 
+def test_wordpress_comment_list_with_article_per_comment_removed() -> None:
+    html = (
+        "<body><article class='post'><p>بدنه اصلی مقاله که باید بماند.</p></article>"
+        "<section class='comments-area comments'><ol class='comment-list'>"
+        "<li class='comment'><article class='comment-body' id='div-comment-1'><p>نظر کاربر اول</p></article></li>"
+        "<li class='comment'><article class='comment-body' id='div-comment-2'><p>نظر کاربر دوم</p></article></li>"
+        "</ol></section></body>"
+    )
+    out = clean(html)
+    assert "بدنه اصلی" in out and "نظر کاربر" not in out
+
+
+def test_post_with_taxonomy_classes_still_protects_container() -> None:
+    html = "<body><div class='sidebar-layout'><article class='post tag-social-media category-share-news'><p>متن اصلی پست</p></article></div></body>"
+    assert "متن اصلی پست" in clean(html)
+
+
 def test_container_of_article_not_removed() -> None:
     out = clean('<body><div class="sidebar-layout"><article><p>متن اصلی</p></article></div></body>')
     assert "متن اصلی" in out
@@ -157,6 +174,13 @@ def test_ui_phrases_removed_but_real_text_kept() -> None:
     out = clean(html)
     assert "متن اصلی" in out and "گزارش سالانه" in out
     assert "کپی لینک" not in out and "اشتراک" not in out and "نمایش بیشتر" not in out
+
+
+def test_ui_phrase_with_trailing_colon_removed() -> None:
+    out = clean(
+        "<body><article><p>فهرست:</p><p>دسته بندی ها:</p><p>متن اصلی مقاله اینجاست.</p></article></body>"
+    )
+    assert "فهرست" not in out and "دسته بندی" not in out and "متن اصلی" in out
 
 
 def test_stats() -> None:

@@ -14,12 +14,19 @@ filbert یک URL (یا HTML خام) می‌گیرد و بدنهٔ اصلی صف�
 
 ابزارهای موجود (Trafilatura، Readability، newspaper) روی خبرهای انگلیسی تنظیم شده‌اند. سایت‌های فارسی مشکلات خودشان را دارند: نیم‌فاصله (ZWNJ) داخل کلمه‌ها، تفاوت حروف عربی و فارسی، تاریخ شمسی، نام کلاس‌های فینگلیش برای بخش‌های زائد (`nazarat`، `tabligh`، `matalebe-mortabet`) و فروشگاه‌های React/Nuxt فراوان. filbert روی یک بنچمارک ۲۰۰ صفحه‌ای فارسی با برچسب دستی ساخته شده که خبر، بلاگ، صفحهٔ محصول، لندینگ و انجمن را پوشش می‌دهد.
 
-| F1 متن اصلی (سطح توکن، ۲۰۲ صفحه با برچسب انسانی) | کل | خبر | بلاگ | محصول | لندینگ | انجمن |
-| --- | --- | --- | --- | --- | --- | --- |
-| **filbert** (ensemble) | **0.862** | 0.938 | 0.957 | 0.804 | 0.827 | 0.698 |
-| Trafilatura 2.3 | 0.728 | 0.842 | 0.909 | 0.706 | 0.503 | 0.511 |
+دو بنچمارک فارسی با برچسب انسانی، F1 متن اصلی در سطح توکن:
 
-صفحاتی با F1 بالای ۰.۹: ۵۸٪ در برابر ۳۳٪. فیلدهای متادیتا (title، description، canonical، تاریخ انتشار، نویسنده) در ۱۰۰٪ صفحاتی که سایت آن‌ها را اعلام کرده با برچسب gold یکی است. گزارش کامل: [bench/report.md](bench/report.md).
+| دیتاست | صفحات | **filbert** | Trafilatura 2.3 | صفحات با F1 بالای ۰.۹ (filbert / Trafilatura) |
+| --- | --- | --- | --- | --- |
+| `fa-200`: خبر، بلاگ، محصول، لندینگ و انجمن از ۲۱ سایت | 202 | **0.861** | 0.728 | ۵۸٪ / ۳۳٪ |
+| `fa-biz-100`: بلاگ ۴۵ کسب‌وکار ایرانی در ۱۳ حوزه | 84 | **0.956** | 0.839 | ۹۰٪ / ۴۴٪ |
+
+| `fa-200` به تفکیک نوع | خبر | بلاگ | محصول | لندینگ | انجمن |
+| --- | --- | --- | --- | --- | --- |
+| filbert | 0.938 | 0.957 | 0.804 | 0.827 | 0.698 |
+| Trafilatura | 0.842 | 0.909 | 0.706 | 0.503 | 0.511 |
+
+روی `fa-biz-100` در همهٔ حوزه‌ها جلوتر است؛ از آموزش، منابع انسانی و رسانه (۰.۹۹ به بالا) تا فین‌تک و ابری (۰.۹۱ / ۰.۸۹). فیلدهای متادیتا (title، description، canonical، تاریخ انتشار، نویسنده) در ۱۰۰٪ صفحاتی که سایت آن‌ها را اعلام کرده با برچسب gold یکی است. گزارش کامل: [bench/report.md](bench/report.md).
 
 ## نصب
 
@@ -139,12 +146,12 @@ stats, records = asyncio.run(fetch_and_extract(
 ```bash
 git clone https://github.com/miladshooli/filbert && cd filbert
 uv sync --all-extras --group dev
-uv run --all-extras pytest -q                 # ۲۲۸ تست
-make bench                                    # fa-200 + fixtures در برابر Trafilatura، با gate رگرسیون
+uv run --all-extras pytest -q                 # ۲۳۴ تست
+make bench                                    # همهٔ دیتاست‌ها در برابر Trafilatura، با gate رگرسیون
 uv run --all-extras python -m bench.speed     # p50/p95 و throughput
 ```
 
-دیتاست `fa-200` (خبر، بلاگ، محصول، لندینگ و انجمن از ۲۱ سایت فارسی با برچسب gold بازبینی‌شدهٔ انسانی) در `bench/datasets/fa-200/` است. `bench/collect.py` آن را از `bench/sources.yml` دوباره می‌سازد؛ `bench/label.py` و ابزار بازبینی آنلاین برچسب gold می‌سازند؛ `bench/promote_labels.py` آن‌ها را اعمال می‌کند.
+دیتاست‌های `fa-200` (خبر، بلاگ، محصول، لندینگ و انجمن از ۲۱ سایت) و `fa-biz-100` (بلاگ ۴۵ کسب‌وکار در فین‌تک، بیمه، سفر، خرده‌فروشی، آموزش، سلامت، ابری و …) با برچسب gold بازبینی‌شدهٔ انسانی در `bench/datasets/` هستند. `bench/collect.py` آن را از `bench/sources.yml` دوباره می‌سازد؛ `bench/label.py` و ابزار بازبینی آنلاین برچسب gold می‌سازند؛ `bench/promote_labels.py` آن‌ها را اعمال می‌کند.
 
 سند طراحی: [docs/BLUEPRINT.md](docs/BLUEPRINT.md). ثبت تصمیم‌ها: [docs/DECISIONS.md](docs/DECISIONS.md). تغییرات: [CHANGELOG.md](CHANGELOG.md).
 
