@@ -20,6 +20,7 @@ from charset_normalizer import from_bytes
 
 from filbert.config import Settings
 from filbert.fetch.cache import Cache, CacheEntry
+from filbert.fetch.guard import URLGuard, URLNotAllowed
 from filbert.fetch.urlnorm import normalize_url
 
 log = logging.getLogger(__name__)
@@ -30,11 +31,18 @@ _CT_CHARSET_RE = re.compile(r"charset=\"?([a-zA-Z0-9_\-]+)", re.IGNORECASE)
 
 
 class FetchError(Exception):
-    def __init__(self, url: str, reason: str, status: int | None = None) -> None:
+    def __init__(
+        self, url: str, reason: str, status: int | None = None, *, blocked: bool = False
+    ) -> None:
         super().__init__(f"{url}: {reason}")
         self.url = url
         self.reason = reason
         self.status = status
+        self.blocked = blocked  # محافظ SSRF رد کرد (نه خطای شبکه)
+
+
+class BodyTooLarge(Exception):
+    pass
 
 
 @dataclass(slots=True)
@@ -136,9 +144,12 @@ def decode_body(body: bytes, encoding: str) -> str:
 class Fetcher:
     """کلاینت مشترک برای یک اجرا. با `async with` استفاده شود."""
 
-    def __init__(self, settings: Settings, cache: Cache | None = None) -> None:
+    def __init__(
+        self, settings: Settings, cache: Cache | None = None, *, guard: URLGuard | None = None
+    ) -> None:
         self.settings = settings
         self.cache = cache
+        self.guard = guard or (URLGuard() if settings.block_private_urls else None)
         self._client: httpx.AsyncClient | None = None
         self._limiter = HostLimiter(
             settings.per_host_concurrency, settings.per_host_delay_ms / 1000
@@ -160,6 +171,7 @@ class Fetcher:
                 "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
                 "Accept-Language": s.accept_language,
             },
+            event_hooks={"request": [self.guard.httpx_hook]} if self.guard else None,
         )
         return self
 
@@ -193,11 +205,21 @@ class Fetcher:
         last_err: str | None = None
         last_status: int | None = None
 
+        if self.guard is not None:
+            try:
+                await self.guard.check(norm)
+            except URLNotAllowed as e:
+                raise FetchError(norm, f"blocked: {e}", blocked=True) from e
+
         for attempt in range(1, attempts + 1):
             t0 = time.perf_counter()
             try:
                 async with self._global, await self._limiter(host):
-                    resp = await self._client.get(norm, headers=self._headers(entry))
+                    resp, body = await self._get(norm, entry)
+            except URLNotAllowed as e:  # redirect به مقصد داخلی
+                raise FetchError(norm, f"blocked: {e}", blocked=True) from e
+            except BodyTooLarge as e:
+                raise FetchError(norm, f"body too large: {e}") from e
             except httpx.TimeoutException as e:
                 last_err = f"timeout: {type(e).__name__}"
             except httpx.HTTPError as e:
@@ -209,14 +231,36 @@ class Fetcher:
                     last_status = resp.status_code
                     await asyncio.sleep(_retry_delay(resp, backoff[attempt - 1]))
                     continue
-                return self._finish(norm, resp, entry, ms, attempt)
+                return self._finish(norm, resp, body, entry, ms, attempt)
             log.warning("fetch %s attempt %d failed: %s", norm, attempt, last_err)
             if attempt <= len(backoff):
                 await asyncio.sleep(backoff[attempt - 1])
         raise FetchError(norm, last_err or "unknown", status=last_status)
 
+    async def _get(self, url: str, entry: CacheEntry | None) -> tuple[httpx.Response, bytes]:
+        """GET با سقف حجم (`max_body_bytes`)؛ بدنه به‌صورت stream خوانده می‌شود."""
+        limit = self.settings.max_body_bytes
+        async with self.client.stream("GET", url, headers=self._headers(entry)) as resp:
+            declared = resp.headers.get("content-length", "")
+            if limit and declared.isdigit() and int(declared) > limit:
+                raise BodyTooLarge(f"content-length {declared} > {limit}")
+            parts: list[bytes] = []
+            size = 0
+            async for chunk in resp.aiter_bytes():
+                size += len(chunk)
+                if limit and size > limit:
+                    raise BodyTooLarge(f"> {limit} bytes")
+                parts.append(chunk)
+        return resp, b"".join(parts)
+
     def _finish(
-        self, norm: str, resp: httpx.Response, entry: CacheEntry | None, ms: int, attempt: int
+        self,
+        norm: str,
+        resp: httpx.Response,
+        body: bytes,
+        entry: CacheEntry | None,
+        ms: int,
+        attempt: int,
     ) -> FetchResult:
         headers = {k.lower(): v for k, v in resp.headers.items()}
         redirects = [str(r.url) for r in resp.history]
@@ -243,7 +287,6 @@ class Fetcher:
                 attempts=attempt,
             )
 
-        body = resp.content
         enc = detect_encoding(body, headers.get("content-type"))
         text = decode_body(body, enc)
         raw_key = None

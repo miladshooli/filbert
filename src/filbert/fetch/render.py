@@ -11,6 +11,7 @@ import asyncio
 import contextlib
 import logging
 import time
+from collections.abc import Awaitable, Callable
 from dataclasses import dataclass
 from typing import Any
 
@@ -41,6 +42,7 @@ class RenderPool:
         user_agent: str | None = None,
         locale: str = "fa-IR",
         headless: bool = True,
+        url_guard: Callable[[str], Awaitable[bool]] | None = None,
     ) -> None:
         self.contexts = contexts
         self.timeout_s = timeout_s
@@ -48,12 +50,20 @@ class RenderPool:
         self.user_agent = user_agent
         self.locale = locale
         self.headless = headless
+        self.url_guard = url_guard  # SSRF: درخواست‌های مرورگر به مقصد داخلی abort می‌شوند
         self._pw: Any = None
         self._browser: Any = None
         self._sem = asyncio.Semaphore(contexts)
         self._lock = asyncio.Lock()
         self._pages_since_restart = 0
-        self.stats = {"ok": 0, "failed": 0, "timeouts": 0, "restarts": 0, "crashes": 0}
+        self.stats = {
+            "ok": 0,
+            "failed": 0,
+            "timeouts": 0,
+            "restarts": 0,
+            "crashes": 0,
+            "blocked": 0,
+        }
 
     async def __aenter__(self) -> RenderPool:
         try:
@@ -101,6 +111,21 @@ class RenderPool:
                 self.stats["restarts"] += 1
             return self._browser
 
+    async def _route(self, route: Any) -> None:
+        req = route.request
+        if req.resource_type in BLOCKED_RESOURCE_TYPES:
+            await route.abort()
+            return
+        if (
+            self.url_guard is not None
+            and req.url.lower().startswith(("http://", "https://"))
+            and not await self.url_guard(req.url)
+        ):
+            self.stats["blocked"] += 1
+            await route.abort()
+            return
+        await route.continue_()
+
     async def render(self, url: str) -> RenderResult:
         from playwright.async_api import Error as PWError
         from playwright.async_api import TimeoutError as PWTimeout
@@ -114,14 +139,7 @@ class RenderPool:
                 viewport={"width": 1280, "height": 900},
             )
             try:
-                await context.route(
-                    "**/*",
-                    lambda route: (
-                        route.abort()
-                        if route.request.resource_type in BLOCKED_RESOURCE_TYPES
-                        else route.continue_()
-                    ),
-                )
+                await context.route("**/*", self._route)
                 page = await context.new_page()
                 resp = await page.goto(
                     url, wait_until="domcontentloaded", timeout=self.timeout_s * 1000

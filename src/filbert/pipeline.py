@@ -13,6 +13,7 @@ import statistics
 import time
 from collections.abc import Callable, Mapping
 from concurrent.futures import ProcessPoolExecutor
+from dataclasses import dataclass
 from datetime import UTC, datetime
 from pathlib import Path
 
@@ -30,6 +31,7 @@ from filbert.fa.normalize import normalize_text
 from filbert.fa.tokenize import char_count, reading_time_min, word_count
 from filbert.fetch.cache import Cache
 from filbert.fetch.client import Fetcher, FetchError, FetchResult, decode_body, detect_encoding
+from filbert.fetch.guard import URLGuard, URLNotAllowed
 from filbert.fetch.needs_js import needs_js
 from filbert.fetch.robots import RobotsCache
 from filbert.fetch.urlnorm import normalize_url
@@ -190,7 +192,11 @@ def _worker_init(settings_dump: dict) -> None:
 
 def _extract_job(job: dict) -> PageRecord:
     """اجرا در پردازه کارگر: ورودی/خروجی picklable."""
-    settings = _WORKER_SETTINGS or Settings(_env_file=None)
+    return extract_job(job, _WORKER_SETTINGS or Settings(_env_file=None))
+
+
+def extract_job(job: dict, settings: Settings) -> PageRecord:
+    """خروجی `PageLoader.load(...).job` → PageRecord (بدون I/O)."""
     return extract_html(
         job["html"],
         job["url"],
@@ -229,6 +235,113 @@ def _job_from_fetch(
     }
 
 
+class PageError(Exception):
+    """شکست یک صفحه پیش از استخراج. `kind`: robots | blocked | fetch."""
+
+    def __init__(self, url: str, reason: str, kind: str, status: int | None = None) -> None:
+        super().__init__(f"{url}: {reason}")
+        self.url = url
+        self.reason = reason
+        self.kind = kind
+        self.status = status
+
+
+@dataclass(slots=True)
+class LoadedPage:
+    fetch: FetchResult
+    job: dict  # ورودی picklable برای `extract_job`
+    rendered: bool
+
+
+class PageLoader:
+    """robots → دریافت (با کش/304) → رندر مشروط؛ مشترک بین `fetch_and_extract` و سرور API.
+
+    منابع (fetcher، کش، robots، استخر رندر) را مالک نیست؛ چرخه عمرشان با فراخوان است.
+    """
+
+    def __init__(
+        self,
+        settings: Settings,
+        fetcher: Fetcher,
+        cache: Cache | None,
+        *,
+        robots: RobotsCache | None = None,
+        render_pool: object | None = None,
+    ) -> None:
+        self.settings = settings
+        self.fetcher = fetcher
+        self.cache = cache
+        self.robots = robots
+        self.render_pool = render_pool
+
+    def wants_render(self, fr: FetchResult, mode: str) -> bool:
+        if mode == "always":
+            return True
+        if mode != "auto":
+            return False
+        return needs_js(
+            fr.text,
+            parse(fr.text),
+            fr.final_url,
+            frozenset(self.settings.always_render_domains),
+        ).needs_js
+
+    async def load(self, url: str, *, force: bool = False, render: str | None = None) -> LoadedPage:
+        if self.fetcher.guard is not None:
+            try:
+                await self.fetcher.guard.check(url)
+            except URLNotAllowed as e:
+                raise PageError(url, f"blocked: {e}", "blocked") from e
+        if self.robots is not None and not await self.robots.allowed(self.fetcher.client, url):
+            raise PageError(url, "robots.txt disallow", "robots")
+        try:
+            fr = await self.fetcher.fetch(url, force=force)
+        except FetchError as e:
+            raise PageError(url, e.reason, "blocked" if e.blocked else "fetch", e.status) from e
+        mode = render or self.settings.render
+        rendered = False
+        html: str | None = None
+        pool = self.render_pool
+        if pool is not None and self.wants_render(fr, mode):
+            try:
+                rr = await pool.render(fr.final_url)  # type: ignore[attr-defined]
+                html, rendered = rr.html, True
+                if self.cache is not None:
+                    self.cache.store(
+                        fr.url,
+                        rr.html.encode("utf-8"),
+                        final_url=rr.final_url,
+                        status=rr.status or fr.status,
+                        headers=fr.headers,
+                        encoding="utf-8",
+                        rendered=True,
+                        fetched_at=fr.fetched_at,
+                    )
+            except (TimeoutError, RuntimeError) as e:
+                log.warning("render %s: %s", url, e)
+        return LoadedPage(
+            fetch=fr,
+            job=_job_from_fetch(fr, self.cache, rendered=rendered, html=html),
+            rendered=rendered,
+        )
+
+
+async def open_render_pool(settings: Settings, guard: URLGuard | None = None) -> object | None:
+    """استخر Playwright را باز می‌کند؛ اگر نصب نباشد یا کرش کند None (با هشدار)."""
+    from filbert.fetch.render import RenderPool, RenderUnavailable
+
+    try:
+        return await RenderPool(
+            contexts=settings.render_contexts,
+            timeout_s=settings.render_timeout,
+            user_agent=settings.user_agents[0],
+            url_guard=guard.allows if guard is not None else None,
+        ).__aenter__()
+    except RenderUnavailable as e:
+        log.warning("render disabled: %s", e)
+        return None
+
+
 def _pool_size(settings: Settings, n_urls: int) -> int:
     if n_urls < 4:
         return 0
@@ -245,15 +358,18 @@ async def fetch_and_extract(
     force: bool = False,
     only_changed: bool = False,
     on_result: ProgressCallback | None = None,
+    run_id: str | None = None,
+    keep_records: bool = True,
 ) -> tuple[RunStats, list[PageRecord]]:
     """URLها/فایل‌ها را می‌گیرد، استخراج می‌کند و (اگر `out_dir` داده شود) روی دیسک می‌نویسد.
 
     دریافت async؛ استخراج در ProcessPool (برای ≥۴ URL و `workers>1`)؛ رندر مشروط با Playwright
     (`settings.render`)؛ `only_changed`: صفحاتی که `content_hash`شان با ایندکس کش یکی است نوشته نمی‌شوند.
+        `keep_records=False`: رکوردها فقط روی دیسک/callback می‌روند (خزش بزرگ با حافظه ثابت).
     """
     settings = settings or Settings()
     started = datetime.now(UTC)
-    store = Store(out_dir, formats=formats) if out_dir is not None else None
+    store = Store(out_dir, run_id=run_id, formats=formats) if out_dir is not None else None
     run_id = store.run_id if store else "-"
     stats = RunStats(
         run_id=run_id,
@@ -278,7 +394,8 @@ async def fetch_and_extract(
 
     def handle(rec: PageRecord | None, source: str, error: str | None) -> None:
         if rec is not None:
-            records.append(rec)
+            if keep_records:
+                records.append(rec)
             stats.ok += 1
             if store is not None:
                 store.write(rec)
@@ -320,20 +437,13 @@ async def fetch_and_extract(
             run_id=run_id,
         ).__aenter__()
     try:
-        if urls and settings.render != "never":
-            from filbert.fetch.render import RenderPool, RenderUnavailable
-
-            try:
-                render_pool = await RenderPool(
-                    contexts=settings.render_contexts,
-                    timeout_s=settings.render_timeout,
-                    user_agent=settings.user_agents[0],
-                ).__aenter__()
-            except RenderUnavailable as e:
-                log.warning("render disabled: %s", e)
-                render_pool = None
         if urls:
             async with Fetcher(settings, cache) as fetcher:
+                if settings.render != "never":
+                    render_pool = await open_render_pool(settings, fetcher.guard)
+                loader = PageLoader(
+                    settings, fetcher, cache, robots=robots, render_pool=render_pool
+                )
 
                 async def extract(job: dict) -> PageRecord:
                     if pool is None:
@@ -342,48 +452,18 @@ async def fetch_and_extract(
 
                 async def one(u: str) -> None:
                     t0 = time.perf_counter()
-                    if robots is not None and not await robots.allowed(fetcher.client, u):
-                        stats.robots_blocked += 1
-                        handle(None, u, "robots.txt disallow")
-                        return
                     try:
-                        fr = await fetcher.fetch(u, force=force)
-                    except FetchError as e:
+                        page = await loader.load(u, force=force)
+                    except PageError as e:
+                        if e.kind == "robots":
+                            stats.robots_blocked += 1
                         handle(None, u, e.reason)
                         return
-                    rendered = False
-                    html: str | None = None
-                    if render_pool is not None:
-                        want = settings.render == "always" or (
-                            settings.render == "auto"
-                            and needs_js(
-                                fr.text,
-                                parse(fr.text),
-                                fr.final_url,
-                                frozenset(settings.always_render_domains),
-                            ).needs_js
-                        )
-                        if want:
-                            try:
-                                rr = await render_pool.render(fr.final_url)
-                                html, rendered = rr.html, True
-                                cache.store(
-                                    fr.url,
-                                    rr.html.encode("utf-8"),
-                                    final_url=rr.final_url,
-                                    status=rr.status or fr.status,
-                                    headers=fr.headers,
-                                    encoding="utf-8",
-                                    rendered=True,
-                                    fetched_at=fr.fetched_at,
-                                )
-                                stats.rendered += 1
-                            except (TimeoutError, RuntimeError) as e:
-                                log.warning("render %s: %s", u, e)
+                    fr = page.fetch
+                    if page.rendered:
+                        stats.rendered += 1
                     try:
-                        rec = await extract(
-                            _job_from_fetch(fr, cache, rendered=rendered, html=html)
-                        )
+                        rec = await extract(page.job)
                     except Exception as e:  # noqa: BLE001 — خطای استخراج نباید اجرا را بخواباند
                         log.exception("extract %s failed", u)
                         handle(None, u, f"extract: {type(e).__name__}: {e}")

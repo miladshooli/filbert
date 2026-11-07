@@ -6,7 +6,9 @@
 from __future__ import annotations
 
 import hashlib
+import random
 import sqlite3
+import time
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from pathlib import Path
@@ -86,10 +88,21 @@ class CacheIndex:
     def __init__(self, path: Path) -> None:
         self.path = Path(path)
         self.path.parent.mkdir(parents=True, exist_ok=True)
-        self._conn = sqlite3.connect(self.path, isolation_level=None, check_same_thread=False)
-        self._conn.execute("PRAGMA journal_mode=WAL")
-        self._conn.execute("PRAGMA synchronous=NORMAL")
-        self._conn.executescript(_SCHEMA)
+        self._conn = sqlite3.connect(
+            self.path, isolation_level=None, check_same_thread=False, timeout=30.0
+        )
+        # چند پردازه (`filbert serve --workers N`) هم‌زمان پایگاه تازه را باز می‌کنند؛ تغییر
+        # journal_mode قفل انحصاری می‌خواهد و busy handler SQLite برایش صبر نمی‌کند → تلاش مجدد.
+        for attempt in range(50):
+            try:
+                self._conn.execute("PRAGMA journal_mode=WAL")
+                self._conn.execute("PRAGMA synchronous=NORMAL")
+                self._conn.executescript(_SCHEMA)
+                break
+            except sqlite3.OperationalError as e:
+                if "locked" not in str(e) or attempt == 49:
+                    raise
+                time.sleep(0.05 + random.random() * 0.1)
 
     def get(self, url: str) -> CacheEntry | None:
         row = self._conn.execute(

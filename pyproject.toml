@@ -1,6 +1,6 @@
 [project]
 name = "filbert"
-version = "0.5.2"
+version = "0.6.0"
 description = "Fast, accurate web main-content + SEO metadata extractor, tuned for Persian/RTL."
 readme = "README.md"
 requires-python = ">=3.12"
@@ -49,6 +49,10 @@ bench = ["trafilatura>=1.9"]
 lang = ["lingua-language-detector>=2.0"]
 export = ["openpyxl>=3.1"]
 llm = ["anthropic>=1.0"]
+server = [
+    "fastapi>=0.115",
+    "uvicorn[standard]>=0.30",
+]
 
 [project.scripts]
 filbert = "filbert.cli:app"

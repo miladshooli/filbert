@@ -25,6 +25,7 @@ uv run pytest -q              # تست
 uv run ruff check . --fix     # لینت
 uv run filbert extract <url|file> --out out/ --formats json,html,md
 uv run filbert bench --dataset fa-200
+uv run --all-extras filbert serve           # سرور API (docs/API.md)
 ```
 
 ## محیط توسعه

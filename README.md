@@ -37,7 +37,7 @@ pip install "filbert[render,export,llm] @ git+https://github.com/miladshooli/fil
 playwright install chromium   # only for --render
 ```
 
-Extras: `render` (Playwright for JS-heavy pages), `export` (Excel), `llm` (schema-based extraction with the Anthropic SDK), `ml`, `lang`, `bench` (Trafilatura baseline, benchmark only).
+Extras: `server` (HTTP API), `render` (Playwright for JS-heavy pages), `export` (Excel), `llm` (schema-based extraction with the Anthropic SDK), `ml`, `lang`, `bench` (Trafilatura baseline, benchmark only).
 
 Requires Python 3.12+. Works on macOS, Linux and Windows.
 
@@ -78,6 +78,26 @@ stats, records = asyncio.run(fetch_and_extract(
 ```
 
 Every run writes `out/<run-id>/` with `pages.jsonl` (one `PageRecord` per line), `chunks.jsonl`, `errors.jsonl`, `run.json` and per-page `json/`, `html/`, `md/` files.
+
+## Run it as an HTTP API
+
+Put filbert on a server and call it from any language:
+
+```bash
+cp .env.example .env            # set FILBERT_API_KEYS
+docker compose up -d --build    # → http://localhost:8000/docs
+# or without Docker:
+pip install "filbert[server,export] @ git+https://github.com/miladshooli/filbert"
+FILBERT_API_KEYS=change-me filbert serve --host 0.0.0.0 --workers 4
+```
+
+```bash
+curl -s localhost:8000/v1/extract -H "Authorization: Bearer change-me" \
+  -H "Content-Type: application/json" \
+  -d '{"url": "https://example.ir/post", "fields": ["seo", "content.text", "content.chunks"]}'
+```
+
+`POST /v1/extract` (one URL or raw HTML), `POST /v1/extract/batch` (up to 20 URLs), `POST /v1/jobs` (background crawl of a URL list or sitemap, results as NDJSON pages, chunks and an Excel SEO report), and an optional `POST /v1/llm`. API keys, an SSRF guard that refuses private and cloud-metadata addresses (on every redirect too), size limits and an OpenAPI page at `/docs` are built in. Release tags also publish `ghcr.io/miladshooli/filbert`. Full guide: [docs/API.md](docs/API.md) (Persian).
 
 ## What you get per page
 
@@ -146,7 +166,7 @@ All settings live in `filbert.config.Settings` (pydantic-settings) and can be se
 ```bash
 git clone https://github.com/miladshooli/filbert && cd filbert
 uv sync --all-extras --group dev
-uv run --all-extras pytest -q                 # 234 tests
+uv run --all-extras pytest -q                 # 268 tests
 make bench                                    # all datasets vs Trafilatura, regression gate
 uv run --all-extras python -m bench.speed     # p50/p95 and throughput
 ```

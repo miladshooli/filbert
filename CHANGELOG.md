@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.6.0] — 2026-11-07 — سرور HTTP API
+
+- **`filbert serve`** (extras `server`: FastAPI + uvicorn) و `filbert.server.create_app()`: `POST /v1/extract` (URL یا HTML خام، با `fields` برای برگرداندن فقط مسیرهای لازم)، `POST /v1/extract/batch`، `POST /v1/jobs` (خزش پس‌زمینه از URL/سایت‌مپ؛ وضعیت روی دیسک، خروجی NDJSON صفحه/چانک/خطا و `export.xlsx`)، `POST /v1/llm` اختیاری، `/health` و مستندات OpenAPI در `/docs`. راهنما: `docs/API.md`.
+- احراز هویت با `FILBERT_API_KEYS` (`Authorization: Bearer` یا `X-API-Key`)، خطاهای یکدست `{"error", "detail"}`، سقف حجم درخواست/HTML/batch/job، CORS اختیاری.
+- **محافظ SSRF** (`fetch/guard.py`، تنظیم `block_private_urls`؛ در سرور پیش‌فرض روشن): فقط http/https؛ IPهای خصوصی، loopback، link-local (متادیتای ابری)، multicast و رزرو، و نام‌های `localhost`/`.local`/`.internal` رد می‌شوند؛ روی هر redirect httpx، درخواست robots.txt و هر درخواست مرورگر رندر هم اعمال می‌شود.
+- دریافت: سقف حجم پاسخ `max_body_bytes` (پیش‌فرض ۲۰ مگابایت، با stream)؛ پیش از این یک URL می‌توانست کل حافظه را پر کند.
+- `pipeline.PageLoader` (robots → دریافت → رندر مشروط) بین `fetch_and_extract` و سرور مشترک شد؛ `fetch_and_extract(run_id=..., keep_records=False)` برای خزش‌های بزرگ با حافظهٔ ثابت.
+- اصلاح: باز کردن هم‌زمان پایگاه کش تازه از چند پردازه (`--workers N`) گاهی با `database is locked` شکست می‌خورد؛ حالا تلاش مجدد می‌کند (در ۵ راه‌اندازی ۴‌پردازه‌ای پیش از اصلاح ۱ شکست، پس از اصلاح ۰).
+- اصلاح: `filbert crawl --webhook` به اجرا نمی‌رسید.
+- Docker: `Dockerfile` (کاربر غیر root، volume `/data`، healthcheck، `--build-arg WITH_RENDER=1` برای Chromium)، `docker-compose.yml`، `.env.example`؛ CI ایمیج را می‌سازد و smoke test می‌کند؛ هر تگ نسخه ایمیج را در `ghcr.io/miladshooli/filbert` منتشر می‌کند.
+
 ## [0.5.2] — 2026-11-07 — بنچمارک بلاگ کسب‌وکارها
 
 - دیتاست **fa-biz-100**: ۸۵ مقاله از بلاگ ۴۵ کسب‌وکار ایرانی در ۱۳ حوزه، بازبینی انسانی در ابزار آنلاین (۷۷ gold، ۷ نامطمئن، ۱ رد). نتیجه: **filbert 0.956 در برابر Trafilatura 0.839**؛ ۹۰٪ صفحات F1 بالای ۰.۹ (Trafilatura ۴۴٪).

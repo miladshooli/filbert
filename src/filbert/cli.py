@@ -203,6 +203,7 @@ def crawl(
         ignore_robots,
         only_changed,
         concurrency=concurrency,
+        webhook=webhook,
     )
 
 
@@ -304,6 +305,55 @@ def _run(
                 )
     if stats.failed and not stats.ok:
         raise typer.Exit(code=1)
+
+
+@app.command()
+def serve(
+    host: Annotated[
+        str,
+        typer.Option(
+            "--host",
+            envvar="FILBERT_SERVE_HOST",
+            help="0.0.0.0 برای دسترسی از بیرون (با FILBERT_API_KEYS)",
+        ),
+    ] = "127.0.0.1",
+    port: Annotated[
+        int, typer.Option("--port", "-p", envvar=["FILBERT_SERVE_PORT", "PORT"])
+    ] = 8000,
+    workers: Annotated[
+        int,
+        typer.Option(
+            "--workers",
+            "-w",
+            envvar="FILBERT_SERVE_WORKERS",
+            help="پردازه‌های uvicorn (هر کدام منابع جدا)",
+        ),
+    ] = 1,
+    log_level: Annotated[str, typer.Option("--log-level")] = "info",
+    reload: Annotated[bool, typer.Option("--reload", help="فقط برای توسعه")] = False,
+) -> None:
+    """سرور HTTP API (extras server). تنظیمات از FILBERT_* و .env؛ مستندات در /docs."""
+    try:
+        import uvicorn
+    except ImportError as e:
+        console.print('[red]install the server extra: pip install "filbert[server]"')
+        raise typer.Exit(code=1) from e
+    settings = Settings()
+    if host not in ("127.0.0.1", "localhost", "::1") and not settings.api_keys.strip():
+        console.print(
+            "[yellow]warning: FILBERT_API_KEYS is empty and the server listens on "
+            f"{host}; anyone who can reach it can use it."
+        )
+    console.print(f"filbert {__version__} → http://{host}:{port}/docs")
+    uvicorn.run(
+        "filbert.server.app:create_app",
+        factory=True,
+        host=host,
+        port=port,
+        workers=None if reload else workers,
+        log_level=log_level,
+        reload=reload,
+    )
 
 
 @app.command()

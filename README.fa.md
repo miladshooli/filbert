@@ -37,7 +37,7 @@ pip install "filbert[render,export,llm] @ git+https://github.com/miladshooli/fil
 playwright install chromium   # فقط برای --render
 ```
 
-امکانات اختیاری (extras): `render` (Playwright برای صفحات JS-محور)، `export` (Excel)، `llm` (استخراج schema-محور با SDK رسمی Anthropic)، `ml`، `lang`، `bench` (Trafilatura فقط به‌عنوان خط پایهٔ بنچمارک).
+امکانات اختیاری (extras): `server` (سرور HTTP API)، `render` (Playwright برای صفحات JS-محور)، `export` (Excel)، `llm` (استخراج schema-محور با SDK رسمی Anthropic)، `ml`، `lang`، `bench` (Trafilatura فقط به‌عنوان خط پایهٔ بنچمارک).
 
 پایتون ۳.۱۲ به بالا؛ روی macOS، لینوکس و ویندوز کار می‌کند.
 
@@ -78,6 +78,26 @@ stats, records = asyncio.run(fetch_and_extract(
 ```
 
 هر اجرا پوشهٔ `out/<run-id>/` را می‌سازد: `pages.jsonl` (هر خط یک `PageRecord`)، `chunks.jsonl`، `errors.jsonl`، `run.json` و فایل‌های جداگانهٔ `json/`، `html/`، `md/` برای هر صفحه.
+
+## اجرا به‌صورت API
+
+filbert را روی سرور بالا بیاورید و از هر زبانی صدا بزنید:
+
+```bash
+cp .env.example .env            # FILBERT_API_KEYS را پر کنید
+docker compose up -d --build    # → http://localhost:8000/docs
+# یا بدون Docker:
+pip install "filbert[server,export] @ git+https://github.com/miladshooli/filbert"
+FILBERT_API_KEYS=change-me filbert serve --host 0.0.0.0 --workers 4
+```
+
+```bash
+curl -s localhost:8000/v1/extract -H "Authorization: Bearer change-me" \
+  -H "Content-Type: application/json" \
+  -d '{"url": "https://example.ir/post", "fields": ["seo", "content.text", "content.chunks"]}'
+```
+
+`POST /v1/extract` (یک URL یا HTML خام)، `POST /v1/extract/batch` (تا ۲۰ URL)، `POST /v1/jobs` (خزش پس‌زمینه از فهرست URL یا سایت‌مپ با خروجی NDJSON صفحه‌ها و چانک‌ها و گزارش Excel سئو) و `POST /v1/llm` اختیاری. کلید API، محافظ SSRF (آدرس‌های داخلی و متادیتای ابری را رد می‌کند، روی هر redirect هم)، سقف حجم و مستندات OpenAPI در `/docs` داخل خود سرور است. هر تگ نسخه، ایمیج `ghcr.io/miladshooli/filbert` را هم منتشر می‌کند. راهنمای کامل: [docs/API.md](docs/API.md).
 
 ## خروجی هر صفحه
 
@@ -146,7 +166,7 @@ stats, records = asyncio.run(fetch_and_extract(
 ```bash
 git clone https://github.com/miladshooli/filbert && cd filbert
 uv sync --all-extras --group dev
-uv run --all-extras pytest -q                 # ۲۳۴ تست
+uv run --all-extras pytest -q                 # ۲۶۸ تست
 make bench                                    # همهٔ دیتاست‌ها در برابر Trafilatura، با gate رگرسیون
 uv run --all-extras python -m bench.speed     # p50/p95 و throughput
 ```

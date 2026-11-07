@@ -12,7 +12,7 @@ playwright install chromium          # فقط اگر render می‌خواهید
 
 # یا از wheel:  uv build  →  dist/filbert-0.5.1-py3-none-any.whl
 ```
-extras: `render` (Playwright)، `export` (Excel)، `llm` (SDK anthropic)، `ml` (مدل‌های یادگیرنده)، `lang` (lingua)، `bench` (Trafilatura، فقط برای مقایسه).
+extras: `server` (سرور API)، `render` (Playwright)، `export` (Excel)، `llm` (SDK anthropic)، `ml` (مدل‌های یادگیرنده)، `lang` (lingua)، `bench` (Trafilatura، فقط برای مقایسه).
 
 ## خط فرمان
 ```
@@ -23,6 +23,7 @@ filbert chunk <url|file> --max 250 --overlap 1 --out chunks.jsonl
 filbert export out/<run-id> --xlsx seo.xlsx
 filbert llm <url|file> --schema article|seo|schema.json      # نیاز به ANTHROPIC_API_KEY
 filbert bench --dataset fa-200 --compare-with trafilatura     # فقط در ریشه مخزن
+filbert serve --host 0.0.0.0 --workers 4                      # سرور HTTP API؛ docs/API.md
 ```
 خروجی هر اجرا در `out/<run-id>/`: `pages.jsonl` (یک خط = یک `PageRecord`)، `chunks.jsonl`، `errors.jsonl`، `run.json`، و پوشه‌های `json/`، `html/`، `md/`.
 کش در `cache/` (HTML خام zstd + `index.sqlite`): اجرای مجدد با ETag/304 بدون دانلود، و `--only-changed` صفحات بدون تغییر را نمی‌نویسد.

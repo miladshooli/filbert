@@ -233,6 +233,7 @@ cache/
 - `index.sqlite` با WAL؛ جدول `pages(url PRIMARY KEY, content_hash, fetched_at, run_id)` تا خزش بعدی فقط صفحات تغییرکرده را دوباره استخراج کند (`--only-changed`).
 - خروجی به Excel/Sheets (ایده umbrella) در فاز دوم از روی `pages.parquet` با `openpyxl`؛ ستون‌های فارسی با `utf-8-sig` و بدون مشکل ZWNJ که قبلاً دیده‌اید.
 - Webhook/POST به API دلخواه (برای اتصال به پنل SEO آینده شما) از همان `PageRecord` سریال می‌شود.
+- سرور HTTP (`filbert serve`، extras `server`، از 0.6.0): همان `PageRecord` از طریق `POST /v1/extract`، batch و jobهای خزش؛ با کلید API و محافظ SSRF. جزئیات: `docs/API.md`.
 
 ## ملاحظات فارسی و RTL
 

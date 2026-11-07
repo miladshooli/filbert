@@ -1,0 +1,21 @@
+# docker compose up -d   →   http://localhost:8000/docs
+# Put FILBERT_API_KEYS (and any other FILBERT_* setting) in a .env file next to this one;
+# see .env.example and docs/API.md.
+services:
+  filbert:
+    build: .
+    image: ghcr.io/miladshooli/filbert:latest
+    ports:
+      - "${FILBERT_PORT:-8000}:8000"
+    environment:
+      FILBERT_API_KEYS: ${FILBERT_API_KEYS:?set FILBERT_API_KEYS in .env (comma-separated keys)}
+      FILBERT_SERVE_WORKERS: ${FILBERT_SERVE_WORKERS:-2}
+    env_file:
+      - path: .env
+        required: false
+    volumes:
+      - filbert-data:/data
+    restart: unless-stopped
+
+volumes:
+  filbert-data:

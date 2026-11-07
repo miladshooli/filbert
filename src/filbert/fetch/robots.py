@@ -11,6 +11,8 @@ from urllib.robotparser import RobotFileParser
 
 import httpx
 
+from filbert.fetch.guard import URLNotAllowed
+
 log = logging.getLogger(__name__)
 TTL_SECONDS = 24 * 3600
 
@@ -68,7 +70,7 @@ class RobotsCache:
                     disk.write_text(text, encoding="utf-8")
             elif resp.status_code in (401, 403):
                 rp = self._parse("User-agent: *\nDisallow: /")  # طبق RFC 9309: دسترسی ممنوع
-        except httpx.HTTPError as e:
+        except (httpx.HTTPError, URLNotAllowed) as e:  # redirect به مقصد داخلی = بدون robots
             log.debug("robots %s: %s", origin, e)
         self._mem[origin] = (now, rp)
         return rp

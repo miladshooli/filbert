@@ -46,6 +46,8 @@ class Settings(BaseSettings):
     render_contexts: int = 3
     render_timeout: float = 10.0
     always_render_domains: tuple[str, ...] = ()
+    max_body_bytes: int = 20_000_000  # سقف حجم پاسخ؛ بیشتر → FetchError (۰ = بی‌سقف)
+    block_private_urls: bool = False  # SSRF: آدرس‌های داخلی/خصوصی رد شوند (در سرور API روشن است)
 
     # استخراج
     dom_model_path: Path | None = None  # مدل lightgbm اختیاری برای DOM-scorer (extras ml)
@@ -68,3 +70,14 @@ class Settings(BaseSettings):
     chunk_heading_level: int = 3
     chunk_unit: str = Field(default="words", pattern="^(words|chars|tiktoken)$")
     chunk_context_prefix: bool = True
+
+    # سرور API (`filbert serve`، extras server؛ docs/API.md)
+    api_keys: str = ""  # کلیدها با کاما جدا؛ خالی = بدون احراز هویت (فقط برای شبکه محلی)
+    api_allow_private_urls: bool = False  # True = سرور به IPهای داخلی هم درخواست می‌زند
+    api_max_batch: int = 20  # سقف URL در `/v1/extract/batch`
+    api_max_html_bytes: int = 5_000_000  # سقف HTML ارسالی در بدنه درخواست
+    api_max_job_urls: int = 5_000  # سقف URL هر job خزش
+    api_max_running_jobs: int = 2  # jobهای همزمان در هر پردازه
+    api_jobs_dir: Path = Path("out/api-jobs")
+    api_cors_origins: str = ""  # مبدأهای مجاز CORS با کاما؛ خالی = CORS خاموش
+    api_llm: bool = False  # `/v1/llm` فعال باشد (هزینه API روی کلید سرور است)

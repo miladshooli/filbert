@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
-__version__ = "0.5.2"
+__version__ = "0.6.0"
 __all__ = ["__version__", "extract_html", "fetch_and_extract"]
 
 if TYPE_CHECKING:

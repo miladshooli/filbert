@@ -18,9 +18,33 @@ jobs:
         with:
           enable-cache: true
       - run: uv python install 3.12
-      - run: uv sync --extra bench --extra export --extra ml --group dev
+      - run: uv sync --extra bench --extra export --extra ml --extra server --group dev
       - run: uv run ruff check .
       - run: uv run ruff format --check src tests bench
       - run: uv run pytest -q
       - name: bench (regression gate on fixtures)
         run: uv run python -m bench.run --dataset fixtures --compare-with trafilatura --check --no-speed-check --no-report
+
+  docker:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: docker build -t filbert:ci .
+      - name: smoke test (auth, extract, SSRF guard)
+        run: |
+          docker run -d --name filbert -p 8000:8000 -e FILBERT_API_KEYS=ci-key filbert:ci
+          for i in $(seq 1 30); do curl -sf localhost:8000/health && break; sleep 1; done
+          code=$(curl -s -o /dev/null -w '%{http_code}' -X POST localhost:8000/v1/extract \
+            -H 'content-type: application/json' -d '{"html":"<p>x</p>"}')
+          test "$code" = 401
+          curl -sf -X POST localhost:8000/v1/extract -H 'Authorization: Bearer ci-key' \
+            -H 'content-type: application/json' \
+            -d '{"html":"<html><head><title>سلام دنیا</title></head><body><article><p>این یک متن آزمایشی فارسی است که باید به‌عنوان محتوای اصلی استخراج شود.</p></article></body></html>","fields":["seo.title","content.text"]}' \
+            | tee out.json
+          grep -q 'سلام دنیا' out.json
+          code=$(curl -s -o /dev/null -w '%{http_code}' -X POST localhost:8000/v1/extract \
+            -H 'Authorization: Bearer ci-key' -H 'content-type: application/json' \
+            -d '{"url":"http://169.254.169.254/latest/meta-data/"}')
+          test "$code" = 400
+      - if: always()
+        run: docker logs filbert || true
