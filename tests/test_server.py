@@ -1,3 +1,4 @@
+import re
 import time
 from pathlib import Path
 
@@ -253,4 +254,5 @@ def test_openapi_and_cli_serve_help(tmp_path: Path) -> None:
     paths = app.openapi()["paths"]
     assert {"/v1/extract", "/v1/extract/batch", "/v1/jobs", "/v1/jobs/{job_id}/pages"} <= set(paths)
     res = CliRunner().invoke(cli_app, ["serve", "--help"])
-    assert res.exit_code == 0 and "--workers" in res.output
+    plain = re.sub(r"\x1b\[[0-9;]*m", "", res.output)  # Rich در CI رنگ می‌دهد
+    assert res.exit_code == 0 and "workers" in plain and "FILBERT_SERVE_WORKERS" in plain
